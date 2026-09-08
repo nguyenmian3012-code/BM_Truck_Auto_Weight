@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bm-can-xe",
+  "account_id": "",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": true,
+  "preview_urls": true,
+  "vars": {
+    "STATION_HOST": "canxe.redtigerhead.com"
+  },
+  "routes": [
+    {
+      "pattern": "canxe.redtigerhead.com",
+      "custom_domain": true
+    }
+  ]
+}
