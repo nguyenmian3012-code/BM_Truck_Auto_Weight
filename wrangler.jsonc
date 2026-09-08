@@ -1,10 +1,10 @@
 {
   "name": "bm-can-xe",
-  "main": "worker/index.js",
   "compatibility_date": "2026-09-08",
-  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  "preview_urls": true,
+  "assets": {
+    "directory": "./public"
+  },
   "vars": {
     "STATION_HOST": "canxe.redtigerhead.com"
   }
