@@ -1,0 +1,7 @@
+{
+  "name": "bm-can-xe",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy"
+  }
+}

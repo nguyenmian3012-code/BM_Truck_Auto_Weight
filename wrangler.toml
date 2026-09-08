@@ -1,0 +1,9 @@
+name = "bm-can-xe"
+compatibility_date = "2026-09-08"
+workers_dev = true
+
+[assets]
+directory = "./public"
+
+[vars]
+STATION_HOST = "canxe.redtigerhead.com"
