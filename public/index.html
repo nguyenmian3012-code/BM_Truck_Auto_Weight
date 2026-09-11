@@ -159,7 +159,7 @@
         return;
       }
       S.conf = matchConf();
-      root.innerHTML = '<div class="wrap"><p class="kicker">Bình Minh · tinh bột khoai mì</p><h1 style="font-size:42px">BM Cân Xe Tự Động</h1><p class="sub">Chụp hình, lưu biển số và cân nặng tự động — Dark Red Wine / Porcelain White / Gold.</p><nav class="tabs"><button data-t="can">Cân xe</button><button data-t="cam">Camera</button><button data-t="q">Thử mẫu</button><button data-t="r">Sổ ngày</button></nav><div id="desk"></div></div>';
+      root.innerHTML = '<div class="wrap"><p class="kicker">Bình Minh · tinh bột khoai mì · v4 11/09</p><h1 style="font-size:42px">BM Cân Xe Tự Động</h1><p class="sub">Chụp hình, lưu biển số và cân nặng tự động — Dark Red Wine / Porcelain White / Gold.</p><nav class="tabs"><button data-t="can">Cân xe</button><button data-t="cam">Camera</button><button data-t="q">Thử mẫu</button><button data-t="r">Sổ ngày</button></nav><div id="desk"></div></div>';
       root.querySelectorAll("nav button").forEach(function(b){
         if (b.getAttribute("data-t")===S.tab) b.className="on";
         b.onclick=function(){ S.tab=b.getAttribute("data-t"); render(); };
