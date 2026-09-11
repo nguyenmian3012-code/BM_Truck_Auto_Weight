@@ -136,14 +136,14 @@
       a.href=URL.createObjectURL(new Blob(["\ufeff"+head+"\n"+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
       a.download="bm-bao-cao.csv"; a.click();
     }
-    function chips(list, cur, fn){
+    function chips(list, cur){
       return list.map(function(x){ return '<button class="chip'+(cur===x[0]?" on":"")+'" data-id="'+x[0]+'">'+x[1]+'</button>'; }).join("");
     }
     function render(){
       persist();
       S.conf=matchConf();
       var root=document.getElementById("app");
-      root.innerHTML='<div class="wrap"><p class="kicker">Bình Minh · tinh bột khoai mì · v5 11/09</p><h1 style="font-size:42px">BM Cân Xe Tự Động</h1><p class="sub">Biển chỉ từ camera — không gõ tay. Phiên mở đến khi checkout thì khóa sổ ngày.</p><nav class="tabs"><button data-t="can">Cân xe</button><button data-t="cam">Camera</button><button data-t="q">Thử mẫu</button><button data-t="r">Sổ ngày</button></nav><div id="desk"></div></div>';
+      root.innerHTML='<div class="wrap"><p class="kicker">Bình Minh · tinh bột khoai mì · v5 backup</p><h1 style="font-size:42px">BM Cân Xe Tự Động</h1><p class="sub">Biển chỉ từ camera — không gõ tay. Phiên mở đến khi checkout thì khóa sổ ngày.</p><nav class="tabs"><button data-t="can">Cân xe</button><button data-t="cam">Camera</button><button data-t="q">Thử mẫu</button><button data-t="r">Sổ ngày</button></nav><div id="desk"></div></div>';
       root.querySelectorAll("nav button").forEach(function(b){
         if(b.getAttribute("data-t")===S.tab) b.className="on";
         b.onclick=function(){ S.tab=b.getAttribute("data-t"); render(); };
@@ -182,7 +182,6 @@
       document.getElementById("cg").onchange=function(){ S.cargo=this.value; render(); };
       document.getElementById("settle").onclick=function(){
         this.textContent="Đang ổn định…";
-        var btn=this;
         setTimeout(function(){ S.kg=Math.round((8+Math.random()*22)*10)*100; render(); },2000);
       };
       desk.querySelectorAll("[data-out]").forEach(function(b){
