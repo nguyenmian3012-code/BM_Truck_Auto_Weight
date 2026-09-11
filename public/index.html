@@ -1,2 +1,284 @@
 <!doctype html>
-<!-- see cf-site/index.html same mill v5 -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BM Cân Xe Tự Động</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#2a0a12;--fg:#f6eee6;--card:#3c1018;--muted:#c9b4ad;--line:#6b2a34;--gold:#d4af37;--plate:#e8c547;--wine:#b42333;--ok:#8fbf90;--warn:#e4c56a;--bad:#e07070}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100dvh;background:radial-gradient(1200px 600px at 10% -10%,#5a1420 0%,var(--bg) 55%);color:var(--fg);font-family:"Be Vietnam Pro",system-ui,sans-serif}
+    h1,h2,.num{font-family:"Barlow Condensed",sans-serif;font-weight:700;margin:0;letter-spacing:.02em}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 16px 88px}
+    .kicker{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:600}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.5}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;gap:12px}
+    @media(min-width:860px){.two{grid-template-columns:1fr 1fr}}
+    input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);background:#4a1820;color:var(--fg);padding:11px 12px;min-height:44px}
+    input[readonly]{opacity:.85;cursor:default}
+    button{cursor:pointer;background:var(--wine);color:#fff7f2;font-weight:600;border:0}
+    button.gold{background:var(--gold);color:#2a0a12}
+    button.ghost{background:#4a1820;color:var(--fg);border:1px solid var(--line)}
+    button.on, .chip.on{border-color:var(--gold);color:var(--gold)}
+    nav.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+    nav.tabs button{background:#4a1820;color:var(--muted)}
+    nav.tabs button.on{background:var(--wine);color:#fff7f2}
+    .num{font-size:40px;color:var(--plate)}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--bad)}
+    label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
+    .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#4a1820;cursor:pointer;font-size:13px;color:var(--fg)}
+    .kpi{flex:1;min-width:110px}
+    .kpi b{display:block;font-size:28px;font-family:"Barlow Condensed",sans-serif}
+    .view{height:120px;border-radius:12px;background:repeating-linear-gradient(0deg,#1a070b 0 2px,#2c0c12 2px 6px);display:grid;place-items:center;color:var(--gold);letter-spacing:.2em;font-size:11px}
+    .scroll{overflow:auto}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    var CARGO = [
+      ["cu_mi_tuoi","Củ mì tươi nguyên liệu"],
+      ["bot_khoai_mi","Bột khoai mì thành phẩm"],
+      ["ba_mi_say","Bã mì sấy phụ phẩm"],
+      ["vo_lua","Vỏ lụa rửa củ"],
+      ["hom_re","Hom rễ củ mì"],
+      ["dat_lua","Đất lụa mì"],
+      ["bun_vi_sinh","Bùn vi sinh"],
+      ["bao_thanh_pham","Bao thành phẩm"],
+      ["dau_nhot","Dầu nhớt"],
+      ["can_thue","Dịch vụ cân thuê"],
+      ["khac","Khác"]
+    ];
+    var BAGS = [{id:"10",n:10,t:0.08},{id:"20",n:20,t:0.12},{id:"25",n:25,t:0.15},{id:"50",n:50,t:0.22},{id:"850g",n:0.85,t:0.012}];
+    var IMP = [
+      ["rac","Tỉ lệ Rác"],
+      ["re","Tỉ lệ Rễ"],
+      ["dat_da","Tỉ lệ Đất và đá"],
+      ["ung_moc","Củ úng và mốc"],
+      ["am_nuoc","Ẩm và nước"]
+    ];
+    var LVL = [["it","Ít",1],["vua","Vừa",3],["nhieu","Nhiều",6]];
+    var HARVEST = [["lt12","Dưới 12h"],["h12_24","Quá 12h · dưới 24h"],["h24_48","Quá 24h"],["gt48","Quá 48h"]];
+    var SOIL = [["cat","Đất cát"],["do","Đất đỏ"],["den","Đất đen"],["set","Đất sét"]];
+    var VAR = [["N05","N05"],["KM94","KM94"],["KM140","KM140"],["KM419","KM419"],["khac","Khác"]];
+    var STORE = "bm-canxe-v5";
+    function cargoName(id){ for (var i=0;i<CARGO.length;i++) if (CARGO[i][0]===id) return CARGO[i][1]; return id; }
+    function seed() {
+      return {
+        tab:"can", plate:"", front:"", rear:"", conf:0, dir:"IN", kg:0,
+        cargo:"cu_mi_tuoi", driver:"", owner:"", bags:40, bagType:"50",
+        starch:27.6, imp:{}, harvest:"h12_24", soil:"do", variety:"N05",
+        dsig:"", osig:"", qplate:"",
+        vehicles:{
+          "51C-248.19":{driver:"Nguyễn Văn Tám",owner:"Cty Minh",cargo:"cu_mi_tuoi"},
+          "60C-127.88":{driver:"Trần Thị Loan",owner:"HTX Đông",cargo:"bot_khoai_mi"},
+          "51C-337.61":{driver:"Lê Văn Hậu",owner:"Tư Bình",cargo:"cu_mi_tuoi"}
+        },
+        open:[{
+          id:"o1", p:"51C-337.61", driver:"Lê Văn Hậu", owner:"Tư Bình",
+          cargo:"cu_mi_tuoi", kg:16880, t:"18:42", conf:91
+        }],
+        day:[{
+          ngay:"11/09/2026", gio:"16:20", p:"51C-889.12", driver:"Nguyễn Văn Tám", owner:"Cty Minh",
+          vr:"Vào→Ra", lx:"Xả", tong:31280, hang:12860, xe:18420,
+          cargo:"Củ mì tươi nguyên liệu", diem:28.4, tap:2
+        },{
+          ngay:"11/09/2026", gio:"17:05", p:"60C-214.08", driver:"Trần Thị Loan", owner:"HTX Đông",
+          vr:"Vào→Ra", lx:"Lấy", tong:27640, hang:12530, xe:15110,
+          cargo:"Bột khoai mì thành phẩm", diem:"", tap:""
+        }]
+      };
+    }
+    var S;
+    try { S = Object.assign(seed(), JSON.parse(localStorage.getItem(STORE)||"null")||{}); } catch(e){ S = seed(); }
+    function persist(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+    function matchConf(){
+      var f=(S.front||"").replace(/\s/g,"").toUpperCase();
+      var r=(S.rear||"").replace(/\s/g,"").toUpperCase();
+      if(f&&r&&f===r) return 99;
+      if(f&&r) return 72;
+      if(f||r) return 88;
+      return 0;
+    }
+    function known(){ return S.vehicles[(S.plate||"").toUpperCase()]; }
+    function applyKnown(){
+      var v=known();
+      if(v){ S.driver=v.driver; S.owner=v.owner; S.cargo=v.cargo; }
+      else { S.driver=""; S.owner=""; }
+    }
+    function bagMath(){
+      var b=BAGS.filter(function(x){return x.id===S.bagType})[0]||BAGS[3];
+      var n=Number(S.bags)||0;
+      return {expected:n*b.n, tare:n*b.t, net:Math.max(0,S.kg-n*b.t)};
+    }
+    function impTotal(){
+      var n=0; IMP.forEach(function(i){ var lv=S.imp[i[0]]; LVL.forEach(function(l){ if(l[0]===lv) n+=l[2]; }); });
+      return n;
+    }
+    function camShot(lane, plate){
+      if(lane==="f") S.front=plate; else S.rear=plate;
+      S.plate=(S.front&&S.rear&&S.front===S.rear?S.front:(S.front||S.rear)).toUpperCase();
+      applyKnown();
+      if(S.open.some(function(x){return x.p===S.plate})) S.dir="OUT";
+      else S.dir="IN";
+      render();
+    }
+    function exportCsv(){
+      var head="ngay,gio,bien,tai_xe,chu,vao_ra,lay_xa,tl_tong,tl_hang,tl_xe,loai_hang,diem,tap";
+      var rows=S.day.map(function(x){ return [x.ngay,x.gio,x.p,x.driver,x.owner,x.vr,x.lx,x.tong,x.hang,x.xe,x.cargo,x.diem,x.tap].join(","); });
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(new Blob(["\ufeff"+head+"\n"+rows.join("\n")],{type:"text/csv;charset=utf-8"}));
+      a.download="bm-bao-cao.csv"; a.click();
+    }
+    function chips(list, cur, fn){
+      return list.map(function(x){ return '<button class="chip'+(cur===x[0]?" on":"")+'" data-id="'+x[0]+'">'+x[1]+'</button>'; }).join("");
+    }
+    function render(){
+      persist();
+      S.conf=matchConf();
+      var root=document.getElementById("app");
+      root.innerHTML='<div class="wrap"><p class="kicker">Bình Minh · tinh bột khoai mì · v5 11/09</p><h1 style="font-size:42px">BM Cân Xe Tự Động</h1><p class="sub">Biển chỉ từ camera — không gõ tay. Phiên mở đến khi checkout thì khóa sổ ngày.</p><nav class="tabs"><button data-t="can">Cân xe</button><button data-t="cam">Camera</button><button data-t="q">Thử mẫu</button><button data-t="r">Sổ ngày</button></nav><div id="desk"></div></div>';
+      root.querySelectorAll("nav button").forEach(function(b){
+        if(b.getAttribute("data-t")===S.tab) b.className="on";
+        b.onclick=function(){ S.tab=b.getAttribute("data-t"); render(); };
+      });
+      var desk=document.getElementById("desk");
+      if(S.tab==="can") deskCan(desk);
+      else if(S.tab==="cam") deskCam(desk);
+      else if(S.tab==="q") deskQ(desk);
+      else deskDay(desk);
+    }
+    function deskCan(desk){
+      var m=bagMath();
+      var flour=S.cargo==="bot_khoai_mi"||S.cargo==="bao_thanh_pham";
+      var isNew=S.plate&&!known();
+      var need=S.conf>0&&S.conf<95;
+      var confTxt=S.conf<=0?"Chưa có biển camera":(need?"Tin cậy "+S.conf+"% — dưới 95%, xác nhận tay":"Tin cậy "+S.conf+"% — cam trước/sau khớp");
+      var openHtml=S.open.length?S.open.map(function(x){
+        return '<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span><b class="num" style="font-size:26px">'+x.p+'</b><span class="sub"> · '+x.driver+' · '+cargoName(x.cargo)+' · '+x.kg.toLocaleString("vi-VN")+' kg · '+x.t+'</span></span><button class="ghost" data-out="'+x.p+'">Checkout</button></div>';
+      }).join(""):'<p class="sub">Không có xe trong bãi.</p>';
+      var opts=CARGO.map(function(c){return "<option value='"+c[0]+"'"+(S.cargo===c[0]?" selected":"")+">"+c[1]+"</option>";}).join("");
+      desk.innerHTML=
+        '<div class="card"><p class="kicker">Phiên mở — đã vào, chưa checkout</p>'+openHtml+'</div>'+
+        '<div class="grid two" style="margin-top:12px">'+
+          '<div class="card"><p class="kicker">Biển số · khóa camera</p><div class="num">'+(S.plate||"—")+'</div><p class="'+(need?"warn":(S.conf>=95?"ok":"sub"))+'">'+confTxt+'</p>'+
+          '<div class="grid two" style="margin-top:10px"><label>Cam trước<input readonly value="'+S.front+'" placeholder="Chỉ từ camera"><button class="ghost" id="sf">Cam trước chụp</button></label><label>Cam sau<input readonly value="'+S.rear+'" placeholder="Chỉ từ camera"><button class="ghost" id="sr">Cam sau chụp</button></label></div></div>'+
+          '<div class="card"><p class="kicker">Cân · chờ 2 giây ổn định</p><div class="num">'+(S.kg?S.kg.toLocaleString("vi-VN")+" kg":"—")+'</div><div class="row" style="margin-top:10px"><button class="ghost" id="settle">Xe lên bàn · ổn định</button><span class="chip">'+(S.dir==="IN"?"Vào · IN":"Ra · OUT")+'</span></div><p class="sub">Hướng tự theo phiên mở. Không đổi tay.</p></div>'+
+        '</div>'+
+        '<div class="card" style="margin-top:12px"><div class="grid two">'+
+          '<label>Loại hàng<select id="cg">'+opts+'</select></label>'+
+          '<label>Tài xế<input id="dr" '+(isNew?"":"readonly")+' value="'+S.driver+'" placeholder="'+(isNew?"Xe mới — nhập tên":"Khóa · xe quen")+'"></label>'+
+          '<label>Chủ xe<input id="ow" '+(isNew?"":"readonly")+' value="'+S.owner+'"></label>'+
+          (flour?('<label>Loại bao<select id="bt">'+BAGS.map(function(b){return "<option value='"+b.id+"'"+(S.bagType===b.id?" selected":"")+">"+b.id+" kg</option>";}).join("")+'</select></label><label>Số bao<input id="bn" type="number" value="'+S.bags+'"></label><p class="sub">Kỳ vọng '+m.expected.toFixed(1)+' · trừ bì '+m.tare.toFixed(2)+' · thực '+m.net.toFixed(1)+' kg</p>'):'<p class="sub">Củ mì: thử mẫu gán điểm sau checkout vào. Xe cũ nhớ hàng.</p>')+
+        '</div><button class="gold" id="ok" style="margin-top:12px">'+(S.dir==="OUT"?"Checkout & khóa sổ":"Xác nhận vào bãi")+'</button></div>';
+      document.getElementById("sf").onclick=function(){ camShot("f","51C-248.19"); };
+      document.getElementById("sr").onclick=function(){ camShot("r","51C-248.19"); };
+      document.getElementById("cg").onchange=function(){ S.cargo=this.value; render(); };
+      document.getElementById("settle").onclick=function(){
+        this.textContent="Đang ổn định…";
+        var btn=this;
+        setTimeout(function(){ S.kg=Math.round((8+Math.random()*22)*10)*100; render(); },2000);
+      };
+      desk.querySelectorAll("[data-out]").forEach(function(b){
+        b.onclick=function(){
+          var p=b.getAttribute("data-out");
+          S.front=p; S.rear=p; S.plate=p; applyKnown(); S.dir="OUT"; S.tab="can"; render();
+        };
+      });
+      document.getElementById("ok").onclick=function(){
+        S.driver=document.getElementById("dr").value;
+        S.owner=document.getElementById("ow").value;
+        S.cargo=document.getElementById("cg").value;
+        var bt=document.getElementById("bt"); if(bt) S.bagType=bt.value;
+        var bn=document.getElementById("bn"); if(bn) S.bags=Number(bn.value)||0;
+        if(!S.plate){ alert("Chờ camera chụp biển — không nhập tay."); return; }
+        if(S.conf<95 && !confirm("Tin cậy "+S.conf+"% (<95%). Xác nhận thủ công?")) return;
+        if(isNew && (!S.driver||!S.owner)){ alert("Xe mới: nhập tài xế và chủ xe."); return; }
+        if(!S.kg){ alert("Chờ cân ổn định 2 giây."); return; }
+        var now=new Date();
+        var gio=now.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+        var ngay=now.toLocaleDateString("vi-VN");
+        S.vehicles[S.plate]={driver:S.driver,owner:S.owner,cargo:S.cargo};
+        if(S.dir==="IN"){
+          S.open.unshift({id:"o"+Date.now(),p:S.plate,driver:S.driver,owner:S.owner,cargo:S.cargo,kg:S.kg,t:gio,conf:S.conf});
+          alert("Mở phiên "+S.plate+" · IN · "+S.kg+" kg");
+        } else {
+          var inn=S.open.find(function(x){return x.p===S.plate});
+          var inKg=inn?inn.kg:Math.round(S.kg*0.6);
+          var tong=Math.max(inKg,S.kg), xe=Math.min(inKg,S.kg), hang=tong-xe;
+          var lx=S.kg>inKg?"Lấy":"Xả";
+          S.day.unshift({ngay:ngay,gio:gio,p:S.plate,driver:S.driver,owner:S.owner,vr:"Vào→Ra",lx:lx,tong:tong,hang:hang,xe:xe,cargo:cargoName(S.cargo),diem:"",tap:""});
+          S.open=S.open.filter(function(x){return x.p!==S.plate});
+          alert("Đã khóa "+S.plate+" · "+lx+" · hàng "+hang.toLocaleString("vi-VN")+" kg");
+        }
+        S.kg=0; S.front=""; S.rear=""; S.plate=""; S.dir="IN";
+        render();
+      };
+    }
+    function deskCam(desk){
+      desk.innerHTML='<div class="grid two"><div class="card"><p class="kicker">Cam trước · khóa</p><div class="view">LANE F</div><p class="num" style="font-size:32px;margin-top:8px">'+(S.front||"—")+'</p><p class="sub">Tự chụp khi cân ổn định 2 giây. JPEG xám. Không sửa tay.</p><button class="ghost" id="sf">Mô phỏng chụp trước</button></div><div class="card"><p class="kicker">Cam sau · khóa</p><div class="view">LANE R</div><p class="num" style="font-size:32px;margin-top:8px">'+(S.rear||"—")+'</p><p class="sub">Khớp trước/sau ≥95% mới tự điền. Lệch → cam 3. Không gõ biển.</p><button class="ghost" id="sr">Mô phỏng chụp sau</button></div></div><div class="row" style="margin-top:12px"><button class="ghost" id="mis">Mô phỏng lệch (cam 3)</button><button class="gold" id="go">Đưa vào đơn cân</button></div>';
+      document.getElementById("sf").onclick=function(){ camShot("f","51C-248.19"); };
+      document.getElementById("sr").onclick=function(){ camShot("r","51C-248.19"); };
+      document.getElementById("mis").onclick=function(){ S.front="51C-248.19"; S.rear="51C-249.19"; S.plate="51C-248.19"; render(); };
+      document.getElementById("go").onclick=function(){ S.tab="can"; render(); };
+    }
+    function deskQ(desk){
+      var cassava=S.open.filter(function(x){return x.cargo==="cu_mi_tuoi"});
+      var total=impTotal();
+      var chipsP=cassava.map(function(x){return '<button class="chip'+(S.qplate===x.p?" on":"")+'" data-p="'+x.p+'">'+x.p+'</button>';}).join("")||'<p class="sub">Chưa có xe củ mì trong bãi.</p>';
+      var rows=IMP.map(function(i){
+        var btns=LVL.map(function(l){return '<button class="chip'+(S.imp[i[0]]===l[0]?" on":"")+'" data-i="'+i[0]+'" data-l="'+l[0]+'">'+l[1]+'</button>';}).join("");
+        return '<div class="row" style="justify-content:space-between"><span>'+i[1]+'</span><span class="row">'+btns+'</span></div>';
+      }).join("");
+      desk.innerHTML=
+        '<p class="sub">Máy tính bảng. Điểm RS232 khóa. Trừ tạp Ít/Vừa/Nhiều. Điểm cộng: thu hoạch · đất · giống. Cần khớp tên tài xế/chủ.</p>'+
+        '<div class="card"><p class="kicker">Cân thử điểm · RS232</p><div class="num">'+S.starch.toFixed(1)+'<span style="font-size:22px;color:var(--fg)"> %</span></div><p class="sub">Không nhập tay.</p></div>'+
+        '<div class="card" style="margin-top:12px"><p class="kicker">Xe củ mì trong bãi</p><div class="row" style="margin-top:8px">'+chipsP+'</div></div>'+
+        '<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between"><p class="kicker">Trừ tạp chất</p><b>−'+total+'%</b></div>'+rows+'</div>'+
+        '<div class="card" style="margin-top:12px"><p class="kicker">Điểm cộng</p><p class="sub">Thời điểm thu hoạch</p><div class="row" id="hv">'+chips(HARVEST,S.harvest)+'</div><p class="sub" style="margin-top:10px">Loại đất trồng</p><div class="row" id="so">'+chips(SOIL,S.soil)+'</div><p class="sub" style="margin-top:10px">Giống</p><div class="row" id="va">'+chips(VAR,S.variety)+'</div></div>'+
+        '<div class="grid two" style="margin-top:12px"><label>Tài xế xác nhận<input id="ds" value="'+S.dsig+'" placeholder="Gõ đúng tên"></label><label>Chủ xe xác nhận<input id="os" value="'+S.osig+'" placeholder="Gõ đúng tên"></label></div>'+
+        '<button class="gold" id="lockq" style="margin-top:12px">Khóa phiếu thử mẫu</button>';
+      desk.querySelectorAll("[data-p]").forEach(function(b){ b.onclick=function(){ S.qplate=b.getAttribute("data-p"); render(); }; });
+      desk.querySelectorAll("[data-i]").forEach(function(b){ b.onclick=function(){ S.imp[b.getAttribute("data-i")]=b.getAttribute("data-l"); render(); }; });
+      document.getElementById("hv").onclick=function(e){ if(e.target.dataset.id){ S.harvest=e.target.dataset.id; render(); } };
+      document.getElementById("so").onclick=function(e){ if(e.target.dataset.id){ S.soil=e.target.dataset.id; render(); } };
+      document.getElementById("va").onclick=function(e){ if(e.target.dataset.id){ S.variety=e.target.dataset.id; render(); } };
+      document.getElementById("lockq").onclick=function(){
+        var rec=S.open.find(function(x){return x.p===S.qplate})||S.vehicles[S.qplate];
+        S.dsig=document.getElementById("ds").value.trim();
+        S.osig=document.getElementById("os").value.trim();
+        if(!S.qplate){ alert("Chọn xe củ mì."); return; }
+        if(!rec){ alert("Không tìm thấy xe."); return; }
+        var wantD=rec.driver||""; var wantO=rec.owner||"";
+        if(S.dsig!==wantD||S.osig!==wantO){ alert("Tên tài xế/chủ chưa khớp — không khóa."); return; }
+        var day=S.day.find(function(x){return x.p===S.qplate});
+        if(day){ day.diem=S.starch; day.tap=impTotal(); }
+        alert("Đã khóa phiếu "+S.qplate+" · bột "+S.starch+"% · trừ "+impTotal()+"%");
+      };
+    }
+    function deskDay(desk){
+      var inT=(S.day.filter(function(x){return x.lx==="Xả"}).reduce(function(a,x){return a+x.hang;},0)/1000).toFixed(1);
+      var outT=(S.day.filter(function(x){return x.lx==="Lấy"}).reduce(function(a,x){return a+x.hang;},0)/1000).toFixed(1);
+      var rows=S.day.map(function(x){
+        return "<tr><td>"+x.ngay+"</td><td>"+x.gio+"</td><td><b>"+x.p+"</b></td><td>"+x.driver+"</td><td>"+x.owner+"</td><td>"+x.vr+"</td><td>"+x.lx+"</td><td>"+x.tong.toLocaleString("vi-VN")+"</td><td>"+x.hang.toLocaleString("vi-VN")+"</td><td>"+x.xe.toLocaleString("vi-VN")+"</td><td>"+x.cargo+"</td><td>"+(x.diem===""?"—":x.diem)+"</td><td>"+(x.tap===""?"—":x.tap)+"</td></tr>";
+      }).join("");
+      desk.innerHTML=
+        '<div class="row">'+
+          '<div class="card kpi"><span class="sub">Tấn xả vào</span><b>'+inT+'</b></div>'+
+          '<div class="card kpi"><span class="sub">Tấn lấy ra</span><b>'+outT+'</b></div>'+
+          '<div class="card kpi"><span class="sub">Xe trong bãi</span><b>'+S.open.length+'</b></div>'+
+          '<div class="card kpi"><span class="sub">Phiếu khóa</span><b>'+S.day.length+'</b></div>'+
+        '</div>'+
+        '<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between"><p class="kicker">Sổ ngày · không sửa</p><button class="gold" id="csv">Xuất báo cáo</button></div><p class="sub">Checkout xong khóa. Ghi binhminh_data khi nối PostgreSQL.</p><div class="scroll"><table><thead><tr><th>Ngày</th><th>Giờ</th><th>Biển</th><th>Tài xế</th><th>Chủ</th><th>Vào/ra</th><th>Lấy/Xả</th><th>TL Tổng</th><th>TL Hàng</th><th>TL Xe</th><th>Loại hàng</th><th>Điểm %</th><th>% Tạp</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+      document.getElementById("csv").onclick=exportCsv;
+    }
+    render();
+  </script>
+</body>
+</html>
