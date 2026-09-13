@@ -6,7 +6,7 @@ Hệ thống chụp hình, lưu biển số và cân nặng tự động — nh�
 - Worker Cloudflare: `bm-can-xe`
 - Whitepaper phần cứng & kích hoạt chụp: [WHITEPAPER.md](./WHITEPAPER.md)
 - Backup mill **không logo**: nhánh `backup/v5-pre-logo`
-- Mill + logo sạch: nhánh `checkpoint/v5-brand`
+- 10 việc tiếp theo: [docs/TASKS.md](./docs/TASKS.md) — issue [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11)
 
 Phần mềm mill **tạm dừng** thêm tính năng. Việc tiếp theo: giao tiếp cầu cân, camera IP, máy đo củ mì.
 
