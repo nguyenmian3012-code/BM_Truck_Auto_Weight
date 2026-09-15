@@ -2,73 +2,96 @@
 
 Việc 3 (máy bột) **không cần** cáp chia cầu cân. Làm 3 trước nếu 2 kẹt.
 
+## Đầu DB25 không phải là nhánh nghe
+
+- **Đầu chuyển DB25 → DB9** chỉ đổi *hình giắc* (25 lỗ thành 9 lỗ). Không tạo thêm nhánh.
+- **Nhánh nghe** là mối chữ **T** trên 2 sợi: chân **TX** (Kingbird nói) và chân **GND**. Nhánh thứ ba đi vào chân **RX** của USB-RS232. Chân TX của USB-RS232 **cắt, không nối**.
+
+Kingbird đã chia sẵn 2 cổng vật lý (màn + máy cũ). Ta không cần “cổng thứ 3 trên thân máy” — chỉ cần T trên **một** trong hai dây đó.
+
+---
+
+## Chưa biết COM1 / COM2 gắn gì
+
+Đừng rút dây lúc xe lên bàn. Làm 5 phút cuối ca:
+
+1. Theo dây từ Kingbird: sợi Sangjin *Control* → màn phụ; sợi còn lại → máy tính sổ cũ.
+2. Dán nhãn lên hai đầu: `MAN` và `SO_CU`.
+3. Đếm lỗ giắc (9 hay 25), chụp ảnh gửi issue #3.
+
+Ưu tiên **T vào nhánh MAN** (màn phụ). Màn chỉ nghe, sổ cũ không đụng. Nếu CoolTerm không ra số kg → màn không đi kèm ASCII; lúc đó mới T nhánh `SO_CU`.
+
+---
+
+## Đấu chỉ nghe (không ghi)
+
+RS-232 chuẩn (Kingbird kiểu máy tính):
+
+| Tín hiệu | DB25 | DB9 (phía máy tính / USB-RS232) |
+|---|---|---|
+| TX — Kingbird **nói** | chân 2 | chân 3 |
+| RX — Kingbird **nghe** | chân 3 | chân 2 |
+| GND | chân 7 | chân 5 |
+
+Nếu CoolTerm im lặng: đổi chéo TX/RX (một số đầu cân đảo 2 và 3). Vẫn **không** nối TX của USB vào dây.
+
+```
+        Kingbird COM (màn hoặc sổ cũ)
+                 |
+            [nối thẳng 25 chân]
+                 |
+        ┌── T chỉ 2 sợi ────────────┐
+        |                        |
+   đường cũ giữ nguyên      nhánh nghe
+   (màn hoặc PC sổ cũ)      USB-RS232 FTDI
+                               RX ← TX Kingbird
+                               GND ← GND
+                               TX  cắt / băng keo
+```
+
+Cách an toàn nhất: hộp **DB25 đực–cái đi thẳng** (ắn xen giữa đầu cân và dây cũ) + 2 sợi hàn ra chân 2 và 7 tới USB-RS232. Dây cũ vẫn cắm như cũ qua hộp.
+
+---
+
+## Tín hiệu có yếu / nhiễu không?
+
+RS-232 là điện áp ±5…±12 V; đầu thu RX trở khá cao. **Hai** đầu thu (màn + mill, hoặc PC + mill) trên một TX thường **không** làm kg sai — đây là cách nghe công nghiệp hay dùng.
+
+Có thể yếu / nhiễu khi:
+
+- nhánh nghe dài > 3 m, không bọc;
+- chạy sát cáp động cơ / biến tần;
+- nối nhầm hai TX (Y 9 chân thẳng);
+- thiếu GND chung.
+
+Giữ nhánh nghe **ngắn** (dưới 2 m), cáp bọc, GND chắc. Baud 1200 càng dễ sống hơn 9600. Nếu sau này log rác khi xe đềng cơ: mua hộp tap cô lập (Advantech / Moxa) — không cần lúc đầu.
+
+**Không** làm kg trên sổ cũ đổi, nếu chỉ song song RX và không nối TX mill.
+
+---
+
 ## Mua ngay (~700–900 nghìn)
 
-| # | Món | Số | Ghi chú mua | Giá tham khảo |
-|---|---|---|---|---|
-| 1 | Cáp **USB → RS232 chip FTDI** (Z-Tek ZE533A hoặc tương đương FT232) | **2** | Một cắm máy bột, một cắm đầu cân. **Không** mua dây hồng CH340 nếu có FTDI | ~300–350k/ợi |
-| 2 | Cáp RS232 **DB9 đực – DB9 cái**, bọc, 1,5–2 m | 1–2 | Nối dài nếu máy tính sample xa | ~50–80k |
-| 3 | Đầu chuyển **DB25 cái → DB9 đực** | 1 | Kingbird COM thường 25 chân; USB-RS232 là 9 chân | ~40–70k |
-| 4 | Đầu hàn DB9 đực + DB9 cái + vỏ ốp kim loại | 2 bộ | Chỉ khi phải **tự hàn tap** việc 2 | ~80–120k |
+| # | Món | Số | Ghi chú |
+|---|---|---|---|
+| 1 | USB → RS232 **FTDI** (ZE533A / FT232) | 2 | Một bột, một cân. Tránh CH340 |
+| 2 | Cáp DB9 đực–cái bọc 1,5–2 m | 1–2 | Nhánh nghe ngắn |
+| 3 | Đầu DB25 → DB9 | 1 | Đổi giắc, chưa phải T |
+| 4 | Hộp DB25 đực–cái đi thẳng **hoặc** 2 đầu hàn DB25 + vỏ | 1 | Xen vào dây, hàn TX+GND ra |
 
-Phần mềm (miễn phí): **CoolTerm** hoặc RealTerm. Bật ghi file + hiện ASCII và Hex.
+Không mua Y 9 chân nối cả 9 sợi.
 
-**Không mua:** cáp Y DB9 “1 đực 2 cái” nối thẳng cả 9 chân — hai máy cùng TX làm sổ cũ loạn.
-
----
-
-## Việc 3 — máy đo củ mì (làm trước khi 2 kẹt)
-
-Máy đã có RS232. Nếu cổng đó **chưa** cắm máy khác: cắm thẳng USB-RS232, không cần chia.
-
-1. Laptop / PC sample, cài CoolTerm + driver FTDI.
-2. Cắm cáp vào máy bột. Windows Device Manager phải thấy COMx (ví dụ COM3).
-3. CoolTerm: chọn đúng COM, **9600, 8 bit, None, 1 stop**, Connection → Open. Bật hiện Hex + ghi file log.
-4. Đo một mẫu thật (hoặc bấm Print/Send trên máy bột).
-5. Thấy số % đọc được → giữ file. Rác / không ra gì → đổi baud: 19200 → 4800 → 2400 → 115200; rồi 9600 **7E1**.
-6. Làm đủ **20 phiếu**, mỗi phiếu ghi tay: giờ, % trên màn máy bột, dòng log.
-7. Nộp file vào `docs/logs/` + comment issue #4.
-
-Hỏi trên file: spew liên tục hay chỉ khi bấm; dấu `.` hay `,`; 28.4 hay 284?
+Phần mềm: CoolTerm, bật Hex + ghi file.
 
 ---
 
-## Việc 2 — Kingbird (nếu kẹt cáp chia)
+## Việc 3 — máy bột (làm khi 2 kẹt)
 
-Làm **theo thứ tự**, cái nào xong trước dùng cái đó.
+Cắm thẳng USB-RS232 nếu cổng trống. CoolTerm 9600 8N1 → 20 phiếu → issue #4.
 
-### 2A — Không cần mua thêm (thử trước)
+## Việc 2 — thứ tự
 
-Mở phần mềm sổ cũ trên máy tính đang nối COM2. Vào Cài đặt / Cổng COM / Baud. **Chụp màn hình** gửi issue #3. Biết baud thì việc 2 nhẹ hơn nhiều.
-
-### 2B — Tap COM1 (màn Sangjin), không đụng COM2
-
-COM1 đang cáp *Shield Control* → màn phụ thường **chỉ nghe** kg. Có thể chạm song song:
-
-```
-Kingbird COM1 TX ──┬── RX màn Sangjin
-                   └── RX USB-RS232 mill
-GND chung. Mill không nối TX.
-```
-
-Sổ cũ trên COM2 không đổi.
-
-### 2C — Tap COM2 (nếu 2B không ra số)
-
-Cùng kiểu: TX đầu cân → RX máy cũ **và** RX mill. Mill không nối TX.
-
-Hàn 3 sợi: TX, GND (± shield). Không nối chân TX của hai máy với nhau.
-
-### 2D — Log
-
-CoolTerm, thử **1200 8N1** (Kingbird hay gặp) → 9600 8N1 → 9600 7E1. Xe lên bàn ≥ 30 phút hoặc ≥ 10 lượt. File `docs/logs/YYYY-MM-DD-kingbird-COM-baud.txt`.
-
----
-
-## Block việc 2 — vẫn làm được
-
-| Block | Làm ngay |
-|---|---|
-| Chưa có cáp chia / sợ tách COM2 | Việc **3** + bước **2A** (chụp cài đặt sổ cũ) |
-| Sổ cũ không cho đụng dây ban ngày | Log đêm / cuối ca; hoặc chỉ tap COM1 |
-| Không biết DB25 hay DB9 | Chụp đầu cáp khi rút (đếm lỗ 9 hay 25) gửi issue #3 |
+1. Chụp baud phần mềm sổ cũ (2A).
+2. Dán nhãn MAN / SO_CU.
+3. T nhánh MAN, CoolTerm 1200 8N1 rồi 9600.
+4. Không ra số → T nhánh SO_CU, vẫn chỉ TX+GND.
