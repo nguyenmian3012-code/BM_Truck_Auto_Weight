@@ -3,7 +3,7 @@
 Ngày chốt bản đồ: **25/09/2026**.  
 Nhà máy tinh bột khoai mì Bình Minh. Host mill: https://canxe.redtigerhead.com
 
-File này tồn tại ở **hai repo**. Sửa một bên thì đối chiếu bên kia trong cùng ngày. Cách đối chiếu: [LIEN-KET-REPO-CHA.md](LIEN-KET-REPO-CHA.md) (trong repo app) và `docs/LIEN-KET-PHAN-MEM-CANCOMP.md` (trong repo cha).
+File này tồn tại ở **hai repo**. Sửa một bên thì đối chiếu bên kia trong cùng ngày. Cách đối chiếu: [LIEN-KET-REPO-CHA.md trong repo app](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/blob/main/docs/LIEN-KET-REPO-CHA.md) và [LIEN-KET-PHAN-MEM-CANCOMP.md trong repo cha](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/blob/main/docs/LIEN-KET-PHAN-MEM-CANCOMP.md).
 
 | Bản | Chỗ |
 |---|---|
