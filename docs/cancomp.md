@@ -1,5 +1,9 @@
 # CANcomp — máy tính cân độc lập
 
+> **Mã phần mềm không còn nằm trong repo này.** Từ 25/09/2026: [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp).
+> Bản đồ cả hệ thống: [HE-THONG-CAN-XE-BINH-MINH.md](./HE-THONG-CAN-XE-BINH-MINH.md).
+> Khi đổi baud, lọc, hoặc `/api/ingest`: sửa repo phần mềm **và** ghi lại ở đây. Bảng: [LIEN-KET-PHAN-MEM-CANCOMP.md](./LIEN-KET-PHAN-MEM-CANCOMP.md).
+
 Quyết 15/09/2026: **không** cài agent lên máy sổ cũ. Một PC riêng (`CANcomp`) nghe dữ liệu, lọc nhiễu, lưu local, đồng bộ lên `canxe.redtigerhead.com`.
 
 ```
