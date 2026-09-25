@@ -25,7 +25,7 @@ Nếu lạc vào một repo và không thấy số liệu: repo kia là chỗ c�
   Máy bột DB9 ────────────── USB-RS232 (PL2303) → CANcomp
   Cam F / cam R (chưa nối vào app 0.1) ── LAN ── CANcomp
 
-  CANcomp   phần mềm BM CANcomp
+  CANcomp   phần mềm BM AutoCan
       │     lọc cao nguyên · SQLite · hàng đợi
       │     HTTPS + X-Station-Key
       ▼
