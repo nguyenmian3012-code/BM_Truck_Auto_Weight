@@ -76,9 +76,9 @@ Yêu cầu:
 |---|---|
 | Việc | Điểm hàm lượng bột của củ mì. Ô điểm trên mill khóa, không gõ tay |
 | Chip đã gặp | Prolific PL2303 |
-| Khung đã gặp 25/09/2026 | `NNNNNN=` — ví dụ nghỉ `000000=` |
+| Khung đã chốt 29/09/2026 | `NNNNNN=` là **gram viết ngược**. `040500=` = 5040 g khô. `075000=` = 570 g ướt. `000000=` = 0 |
 | Cấu hình đã chốt vì sự cố COM5 | **1200 8N1**, DTR tắt, RTS tắt, không software flow. Không trả về 7N1 |
-| Lọc | Sàn 0,05 %. Đỉnh tối thiểu 5 %. ε 0,2 điểm trong 2,0 giây. Trần 80 % |
+| Lọc | Đỉnh khô khoảng 4200–5600 g, ε 30 g trong 2 giây. Đỉnh ướt 250–900 g, ε 8 g. Điểm bột tra Phụ lục 1 Quyết định 228/1999 sau khi quy cân ướt về mẫu khô 5000 g: cân ướt tương đương = 5000 × ướt / khô. Hai phiếu: một dòng gram khô, một dòng điểm |
 
 ### Bảo mật trên máy
 
