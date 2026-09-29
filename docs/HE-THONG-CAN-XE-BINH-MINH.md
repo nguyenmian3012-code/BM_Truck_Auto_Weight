@@ -53,7 +53,7 @@ Yêu cầu:
 
 1. Đọc liên tục hai cổng COM RS232.
 2. Bỏ số lúc bàn cân được vệ sinh, số lỗi, số khi cân ở 0, số người đứng (thấp, không phải xe).
-3. Chỉ lấy giá trị **cao và đứng yên** — cửa 2 giây, không nhảy. Một số cho một lượt xe hoặc một mẫu bột.
+3. Chỉ lấy giá trị **cao và đứng yên**. Cân xe: cửa **3 giây**, ε 20 kg. Điểm bột: số ổn định cuối khi máy về 0. Một số cho một lượt xe hoặc một mẫu bột.
 4. Admin đơn giản bằng PIN. Người cân không sửa ε, không sửa cổng, không thấy `STATION_KEY`.
 5. Đẩy lên mill **đúng cấu trúc** phía dưới. Mất mạng thì giữ local rồi gửi lại.
 6. Tháng đối chiếu: mill không phải căn thanh toán cho đến khi lệch với sổ cũ **dưới 1%** trên ít nhất 30 ngày lịch (whitepaper repo cha).
@@ -68,7 +68,7 @@ Yêu cầu:
 | Cách nghe | Tap TX của đầu cân sang RX của USB-RS232. TX của CANcomp **không nối**. GND chung |
 | Bộ chia | DTECH 1→2. OUTPUT1 giữ đường cũ. OUTPUT2 sang CANcomp |
 | Khung | ASCII kg. Baud không in tem. Thử **1200 8N1** rồi 9600. Spew menu F3 chưa biết (0 liên tục / 1 lệnh / 2 SICS) |
-| Lọc | Sàn 80 kg. Dưới 400 kg không phải đỉnh xe. ε 20 kg trong 2,0 giây. Trần 120000 kg |
+| Lọc | Sàn 80 kg. Dưới 400 kg không phải đỉnh xe. ε 20 kg trong **3,0 giây** (nâng từ 2 giây ngày 29/09/2026 để gần sổ cũ). Trần 120000 kg |
 
 ### Cổng 2 — máy bột
 
@@ -118,7 +118,7 @@ Khi thêm route, checklist bắt buộc:
 Theo whitepaper và mill v5 trong repo cha:
 
 - Biển số chỉ từ camera. Khớp trước/sau ≥ 95% thì điền, không gõ tay. Dưới 95% thì pending.
-- Xe lên bàn, cân ổn định 2 giây, rồi mới chụp. Không chụp vì hình “thấy xe đứng”.
+- Xe lên bàn, cân ổn định 3 giây, rồi mới chụp. Không chụp vì hình “thấy xe đứng”.
 - Phiên IN mở khi vào. Checkout OUT khóa sổ ngày (tổng, hàng, xe, lấy/xả).
 - Điểm bột chỉ từ RS232 (chính là phiếu `starch` của app này), không ô nhập.
 - OCR pha 1: ảnh đưa lên mill. OCR local trên CANcomp chỉ xét khi mất mạng dài — không làm hai bộ OCR cùng lúc.
