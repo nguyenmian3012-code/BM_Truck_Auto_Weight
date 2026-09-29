@@ -3,68 +3,45 @@
 Hệ thống chụp hình, lưu biển số và cân nặng tự động — nhà máy Bình Minh (tinh bột khoai mì).
 
 - Live: [canxe.redtigerhead.com](https://canxe.redtigerhead.com)
-- Worker Cloudflare: `bm-can-xe`
-- Whitepaper phần cứng & kích hoạt chụp: [WHITEPAPER.md](./WHITEPAPER.md)
-- Backup mill **không logo**: nhánh `backup/v5-pre-logo`
-- 10 việc tiếp theo: [docs/TASKS.md](./docs/TASKS.md) — issue [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11)
+- Worker Cloudflare: `bm-can-xe`. Git webhook không tự build — khi cần bản live, upload `public/index.html` (mill v5, logo BM_7 đã nhúng).
+- Phần mềm máy CANcomp, tên hiển thị **BM AutoCan** (repo riêng): [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) — nghe RS232, lọc cao nguyên, SQLite, sync. Đổi ingest hoặc luật kg thì sửa **cả** repo đó. Không cài bản nháp `cancomp-agent/` trong repo này.
+- Bản đồ đã chốt: [docs/HE-THONG-CAN-XE-BINH-MINH.md](./docs/HE-THONG-CAN-XE-BINH-MINH.md) · cách không bỏ sót app: [docs/LIEN-KET-PHAN-MEM-CANCOMP.md](./docs/LIEN-KET-PHAN-MEM-CANCOMP.md)
+- Kiến trúc máy cân: [docs/cancomp.md](./docs/cancomp.md) — PC độc lập **CANcomp** + DTECH + sync HTTPS
+- Whitepaper: [WHITEPAPER.md](./WHITEPAPER.md)
+- 10 việc: [docs/TASKS.md](./docs/TASKS.md) — issue [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11)
+- Backup mill không logo: nhánh `backup/v5-pre-logo`
 
-Phần mềm mill **tạm dừng** thêm tính năng. Việc tiếp theo: giao tiếp cầu cân, camera IP, máy đo củ mì.
+Repo gốc là repo này. Không dùng bản copy `bm-can-xe` (bot import).
 
 ---
 
-## Hiện trạng thiết bị
+## Lớp máy (chốt 15/09/2026)
 
-| Hạng mục | Tình trạng |
+| Máy | Việc |
 |---|---|
-| Cầu cân | Đã có (chưa có màn phụ tài xế) |
-| Camera | Tận dụng IP cam sẵn có — model giao sau, chỉnh nhẹ CGI/ONVIF |
-| Máy đo điểm củ mì | Đã có RS232 — **chưa biết baud / khung tin** |
-| Tablet chống nước | Để sau; thử mẫu giai đoạn 1 trên PC |
+| Sổ cũ | Giữ nguyên, không cài thêm |
+| **CANcomp** | Nghe Kingbird (qua DTECH) + máy bột; lọc cao nguyên; chụp cam + đèn; SQLite; sync canxe |
+| canxe.redtigerhead.com | Phiên, OCR pha 1, sổ ngày, sau đó `binhminh_data` |
+
+Chi tiết dây / baud / lọc: [docs/cancomp.md](./docs/cancomp.md), [docs/mua-vat-tu-viec-2-3.md](./docs/mua-vat-tu-viec-2-3.md).
+
+Mill v5 (phiên, biển từ camera, sổ ngày, logo hổ) nằm ở `public/index.html`. Phần nghe cổng COM không nằm trong trang web — nằm ở BM AutoCan.
 
 ---
 
-## Chiến thuật (hai bước, làm song song)
+## Chiến thuật
 
-**Bước 1A — Mock-up.** Cân nhỏ + xe truck đồ chơi dán biển. Cùng protocol với hệ thật (`ScaleEvent` / `CameraShot` / `MeterReading`). Không bịa giao thức demo.
+Nguồn kích chụp là **cân ổn định 2 giây**, không phải camera tự thấy xe dừng. Biển chỉ từ camera. Điểm bột chỉ từ RS232.
 
-**Bước 1B — Nghe thiết bị thật.** Máy tính sample + USB-RS232: log raw máy bột và đầu cân; quét baud 9600 8N1 trước. Xác định ngôn ngữ/kiểu dữ liệu trước khi nối mill.
+1. Nghe thiết bị thật trên CANcomp (BM AutoCan), lọc cao nguyên, đối chiếu sổ cũ.
+2. Song song sổ cũ ≥ 30 ngày. Lệch dưới 1% thì mill mới là căn thanh toán.
+3. Mock-up và camera làm cùng lúc, không chặn bước nghe cân.
 
-Khi 1A+1B đạt: **thay mock bằng thiết bị thật** (đổi driver, không đổi nghiệp vụ).
+Sơ đồ đầy đủ: [WHITEPAPER.md](./WHITEPAPER.md).
 
-**Bước 2 — Song song sổ cũ ≥ 30 ngày.** Đối chiếu kg, biển, IN/OUT, điểm bột. **Lỗi < 1%** → chính thức. ≥ 1% → giữ sổ cũ, sửa driver.
+## Cloudflare
 
-Chi tiết sơ đồ kích hoạt chụp (cân ổn 2 giây → snapshot 2 cam → OCR ≥95%): xem [WHITEPAPER.md §3](./WHITEPAPER.md).
-
----
-
-## Kích hoạt chụp (tóm tắt)
-
-Nguồn sự thật là **cân ổn định**, không phải camera tự “thấy xe dừng”.
-
-1. Đầu cân spew kg (RS232/Ethernet) ± bit STABLE nếu có.  
-2. Driver: `|Δkg| < ε` trong **≥ 2,0 s** → một cạnh `stable`.  
-3. Cùng lúc snapshot cam trước + cam sau (CGI/ONVIF). Nét thấp → chụp lại 1 lần. JPEG xám.  
-4. Khớp biển ≥ 95% → điền, **không gõ tay**. Lệch → pending (+ cam 3 sau này).
-
-Mock-up phải ra **cùng** chuỗi sự kiện — không được thay bằng nút “chụp thử” trong mill.
-
----
-
-## Máy đo củ mì RS232
-
-Nối máy tính sample, ghi hex+ASCII. Thử 9600 8N1 → 19200 → 4800. Chốt: spew hay bấm Send, dấu thập phân, tần số. Mill khóa ô điểm — không nhập tay.
-
----
-
-## Cloudflare (cổng)
-
-Repo **gốc** là repo này. Không dùng bản copy `bm-can-xe` (bot import).
-
-1. dash.cloudflare.com → Worker **bm-can-xe**  
-2. Custom domain `canxe.redtigerhead.com` (Proxied CNAME)  
-3. Secret `STATION_KEY`  
-4. Git webhook đang không tự build — upload `public/index.html` khi cần bản live  
-
-Mã thử: `BinhMinh-CanXe` — đổi trước phát hành.
-
-`main` = cổng. Mill đầy đủ trên `checkpoint/v5-brand`. Whitepaper triển khai: luôn đọc trước khi mua/cắm thiết bị.
+1. Worker **bm-can-xe**
+2. Custom domain `canxe.redtigerhead.com`
+3. Secret `STATION_KEY` — không commit. App CANcomp gửi header `X-Station-Key`.
+4. `POST /api/ingest` chưa có trên worker (đang 404). BM AutoCan xếp hàng SQLite cho đến khi route trả 2xx.
