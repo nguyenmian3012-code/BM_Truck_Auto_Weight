@@ -118,11 +118,11 @@ Khi thêm route, checklist bắt buộc:
 Theo whitepaper và mill v5 trong repo cha:
 
 - Biển số chỉ từ camera. Khớp trước/sau ≥ 95% thì điền, không gõ tay. Dưới 95% thì pending.
-- Xe lên bàn, cân ổn định 3 giây, rồi mới chụp. Không chụp vì hình “thấy xe đứng”.
-- Phiên IN mở khi vào. Checkout OUT khóa sổ ngày (tổng, hàng, xe, lấy/xả).
-- Điểm bột chỉ từ RS232 (chính là phiếu `starch` của app này), không ô nhập.
-- OCR pha 1: ảnh đưa lên mill. OCR local trên CANcomp chỉ xét khi mất mạng dài — không làm hai bộ OCR cùng lúc.
-- Camera + đèn: ON → chụp F và R → OFF → JPEG xám. **Chưa code trong app 0.1.** Spec nằm ở `docs/cancomp.md` repo cha. Khi code, code nằm trong repo app này, spec vẫn trỏ từ repo cha.
+- Xe lên bàn, cân ổn định 3 giây, rồi mới được chụp. Không chụp vì hình “thấy xe đứng”. Ảnh chưa phải việc của vòng đối sổ.
+- Phiên IN/Ra chỉ khi đã có biển tin. Không mở phiên từ kg trần.
+- Điểm bột chỉ từ RS232 (phiếu `starch` của app này), không ô nhập.
+- OCR để sau, cùng `eventId` với phiếu kg. Pending khi chưa đọc biển. Không OCR local trên CANcomp trong pha này.
+- Một JPEG ghép dính `eventId` là đủ khi tới lượt ảnh. Không chặn phiếu kg vì chưa đủ ba camera. Đèn trắng, không dùng IR lúc chụp biển.
 
 ## 4. Thứ tự đưa vào vận hành
 
