@@ -47,7 +47,7 @@ Quyết 15/09/2026, còn hiệu lực: agent **không** cài lên máy sổ cũ.
 
 ## 2. Phần mềm CANcomp làm gì — yêu cầu đã chốt
 
-Chạy Windows 10 trở lên. Ngôn ngữ: **C# .NET 8**. Bản 0.1 vẽ bằng WinForms. Lớp vẽ sau chuyển **WPF**; phần đọc cổng và lọc giữ nguyên.
+Chạy Windows 10 trở lên. Ngôn ngữ: **C# .NET 8**. Lớp vẽ đang chạy là **WinForms**. Không chuyển WPF trước khi 20 lượt kg khớp sổ cũ.
 
 Yêu cầu:
 
@@ -126,13 +126,11 @@ Theo whitepaper và mill v5 trong repo cha:
 
 ## 4. Thứ tự đưa vào vận hành
 
-1. MinhComp: nghe COM thật (nếu có cáp) hoặc đối chiếu log. Lọc phải ra **một** số đúng đỉnh, không ra số vệ sinh.
-2. Viết `/api/ingest` trên worker — cùng lúc đối chiếu payload repo app.
-3. Chạy song song sổ cũ ≥ 30 ngày. Sổ cũ vẫn là căn vận hành trong tháng đó.
-4. Lệch / lỗi cân-đo < 1% thì mill mới thành căn. Ngược lại giữ song song, sửa ε hoặc parser ở repo app, không cắt sổ cũ.
-5. Cài lên CANcomp sau khi bản MinhComp ổn. Không cài bản đang lệch.
-6. WPF thay WinForms khi sắp xếp cửa sổ — không chặn bước nghe COM nếu WinForms 0.1 đã lọc đúng.
-7. Camera, đèn, rồi mới `binhminh_data`.
+1. CANcomp đang chạy bản desktop. Việc kế: 20 lượt kg và vài phiếu bột đối với sổ cũ. Lệch thì sửa ε hoặc cửa, không thêm camera.
+2. Worker nhận được kg và điểm trước khi bật key production.
+3. Sổ cũ vẫn là căn cho đến khi lệch dưới 1% đủ 30 ngày.
+4. Ảnh: một `eventId` lúc khóa kg, một JPEG, ACK ảnh mới cho xuống. Không đợi OCR.
+5. Không chuyển WPF. Không ghi `binhminh_data` từ CANcomp.
 
 ## 5. Cố ý chưa làm
 
