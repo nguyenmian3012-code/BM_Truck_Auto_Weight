@@ -101,7 +101,7 @@ Body bột (`source = starch`): cùng các field, thay `kg` bằng `starchPct`.
 `stationId` bản thử MinhComp: `MinhComp-Draft`.  
 `stationId` CANcomp: `BinhMinh-CanXe`.
 
-SQLite: `C:\ProgramData\BmCancomp\data\cancomp.db`, bảng `events` (queued / retry / sent / fail) và `raw_log`.
+SQLite: `C:\ProgramData\BmCancomp\data\cancomp.db`, bảng `events` (queued / retry / sent / fail, không xóa theo ngày) và `raw_log` (raw RS232, xóa sau 2 ngày). Lưới chính chỉ 50 phiếu mới. Phiếu cũ: nút Tìm phiếu.
 
 **Trạng thái mill tại 25/09/2026:** hợp đồng trên đã viết trong `docs/cancomp.md` của repo cha. File `worker/index.js` trên `main` (`9a1f5db`) chưa gắn route `/api/ingest`. App xếp hàng và thử lại. Chưa có 2xx thì chưa có phiếu trên mill.
 
