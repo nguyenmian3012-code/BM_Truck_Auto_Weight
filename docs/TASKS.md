@@ -1,6 +1,6 @@
 # Việc tiếp theo — theo whitepaper 09/10/2026
 
-Căn cứ: [WHITEPAPER.md](../WHITEPAPER.md) mục 5 “Chưa đạt”. File này thay danh sách 10 việc tháng 9 (cửa 2 giây, mock xe đồ chơi, máy bột gửi sẵn `%`) — đó là hướng cũ.
+Căn cứ: [WHITEOBSER.md](../WHITEPAPER.md) mục 5 “Chưa đạt”. File này thay danh sách 10 việc tháng 9 (cửa 2 giây, mock xe đồ chơi, máy bột gửi sẵn `%`) — đó là hướng cũ.
 
 Issue cũ [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) viết theo bản 12/09. Đọc để tra lịch sử, không làm theo.
 
@@ -39,3 +39,14 @@ Luật số đang chạy nằm ở app BM Auto Cân Desktop trên CANcomp. Chưa
 | 10 | Sau cổng 1%: mill và `binhminh_data` là sổ, sổ cũ cất | Ô biển và ô điểm vẫn không gõ tay |
 
 Ngày 15/10: **#1**. Không đánh dấu dòng nào là xong khi chưa có bằng chứng vận hành.
+
+## Việc bổ sung (14/10) — cụ thể hóa, không thay thứ tự ưu tiên
+
+| # | Việc | Xong khi | Liên quan |
+|---|---|---|---|
+| 11 | Tiếp tục tối ưu UX desktop từ v0.15.1: giữ hướng CSV không khóa cửa sổ (0.14.6) và lưu thẳng thư mục dữ liệu (0.14.8); không đụng luật kg/bột | Bản mới trên CANcomp, xuất CSV không treo dialog, luật số không đổi | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
+| 12 | Thêm CI chạy test cho repo mill (hiện chỉ có `.github/workflows/deploy.yml`, chưa có job test) | Push/PR chạy được test tự động, xanh trên `main` | — |
+| 13 | Checklist sẵn sàng lắp cam thật tại cầu cân (theo [CHECKPOINT-2026-10-09.md](./CHECKPOINT-2026-10-09.md): ba cam F/R/S, chế độ nghỉ đã khóa, Digest Dahua) — kiểm trước khi gắn | Checklist đã đánh ✓; chụp thử ra JPEG nét đủ đọc biển ban ngày | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
+| 14 | Giám sát ingest: theo dõi 401/503/`STATION_KEY chua gan`, hàng đợi CANcomp, cảnh báo khi không có POST thành công trong ca | Có cách xem lỗi và biết khi ingest im lặng; không lộ khóa | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
+| 15 | Sao lưu định kỳ D1 `bm-can-xe` (xem [INGEST.md](./INGEST.md)) | Có bản dump/export khôi phục được, ghi rõ chỗ cất | — |
+| 16 | Đồng bộ WHITEPAPER với app đang chạy: whitepaper còn ghi **0.14.3**, CANcomp đã **v0.15.1** (`66772bb`) — cập nhật số phiên bản và mô tả phiếu đơn; không đổi mục “Chưa đạt” khi chưa có bằng chứng | WHITEPAPER nêu đúng bản app trên CANcomp | [#4](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/4), [#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) |
