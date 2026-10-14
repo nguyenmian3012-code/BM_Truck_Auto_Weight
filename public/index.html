@@ -37,6 +37,10 @@
     .days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
     .days button{background:#4a1820;color:var(--muted)}
     .days button.on{background:var(--gold);color:#2a0a12}
+    .edit{font-size:11px;padding:4px 8px;min-height:0;margin-top:auto;align-self:flex-start}
+    .zoom{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;place-items:center;z-index:20;padding:24px}
+    .zoom.on{display:grid}
+    .zoom img{max-width:92vw;max-height:88vh;border-radius:12px}
     nav.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
     nav.tabs button{background:#4a1820;color:var(--muted)}
     nav.tabs button.on{background:var(--wine);color:#fff7f2}
@@ -197,23 +201,26 @@
       return ["Hôm nay","Hôm qua","2 hôm trước","3 hôm trước"][off];
     }
     function thumb(label, src, cap){
-      if(src) return '<div class="thumb"><img src="'+src+'" alt="'+label+'"><span style="display:none">'+label+'</span></div>'+(cap?'<div class="meta" style="margin-top:4px">'+cap+'</div>':'');
-      return '<div class="thumb">'+label+'<br>Ảnh ghép F · R · S<br>chờ OCR</div>';
+      var img = src ? '<img src="'+src+'" alt="'+label+'" data-zoom="'+src+'">' : label+'<br>Ảnh ghép F · R · S<br>chờ OCR';
+      return '<div class="thumb" '+(src?'data-zoom="'+src+'"':'')+'>'+img+'</div>'+(cap?'<div class="meta" style="margin-top:4px">'+cap+'</div>':'');
+    }
+    function editBtn(kind, id){
+      return '<button type="button" class="ghost edit" data-edit="'+kind+'" data-id="'+id+'">Sửa</button>';
     }
     function deskCan(desk){
       var openCards=S.open.length?S.open.map(function(x){
-        return '<article class="kid">'+thumb("Trong nhà máy")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div></article>';
+        return '<article class="kid">'+thumb("Trong nhà máy")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div>'+editBtn("open", x.id)+'</article>';
       }).join(""):'<p class="sub">Không có xe trong nhà máy.</p>';
       var ex=S.exceptions||[];
       var exCards=ex.length?ex.map(function(x){
-        return '<article class="kid" data-ex="'+x.id+'" style="cursor:pointer">'+thumb(x.reason||"Ngoại lệ")+'<div class="plate">'+(x.p||"Chưa có biển")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"chưa có")+'</b><br>'+(x.note||"")+'</div></article>';
+        return '<article class="kid">'+thumb(x.reason||"Ngoại lệ")+'<div class="plate">'+(x.p||"Chưa có biển")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"chưa có")+'</b><br>'+(x.note||"")+'</div>'+editBtn("ex", x.id)+'</article>';
       }).join(""):'<p class="sub">Không có ngoại lệ.</p>';
       var off=S.dayOff||0;
       var want=dayKey(off);
       var closed=S.day.filter(function(x){return x.ngay===want;});
       var closedCards=closed.length?closed.map(function(x){
         var flow=x.lx==="Lấy"?"Xuất hàng":"Nhập hàng";
-        return '<article class="kid closed">'+thumb("Hình đầu xe")+'<div class="plate">'+x.p+'</div><div class="meta">Loại xe <b>'+(x.loaiXe||"Xe tải")+'</b><br>Chủ xe <b>'+x.owner+'</b><br>Vào <b>'+x.ngay+' '+(x.vao||x.gio)+'</b><br>Ra <b>'+x.ngay+' '+(x.ra||x.gio)+'</b><br><b>'+flow+'</b><br>Mặt hàng <b>'+x.cargo+'</b><br>Loại bao <b>'+(x.bao||"—")+'</b></div></article>';
+        return '<article class="kid closed">'+thumb("Hình đầu xe")+'<div class="plate">'+x.p+'</div><div class="meta">Loại xe <b>'+(x.loaiXe||"Xe tải")+'</b><br>Chủ xe <b>'+x.owner+'</b><br>Vào <b>'+x.ngay+' '+(x.vao||x.gio)+'</b><br>Ra <b>'+x.ngay+' '+(x.ra||x.gio)+'</b><br><b>'+flow+'</b><br>Mặt hàng <b>'+x.cargo+'</b><br>Loại bao <b>'+(x.bao||"—")+'</b>'+(x.diem!==""&&x.diem!=null?'<br>Điểm bột <b>'+x.diem+' %</b>':'')+'</div>'+editBtn("day", x.p)+'</article>';
       }).join(""):'<p class="sub">Không có phiên đóng ngày này.</p>';
       var days=[0,1,2,3].map(function(n){
         return '<button type="button" data-day="'+n+'" class="'+(n===off?"on":"")+'">'+dayLabel(n)+'</button>';
@@ -236,20 +243,33 @@
         S.open.unshift({id:"o"+Date.now(), p:S.plate||"Chưa có biển", driver:S.driver, owner:S.owner, cargo:cargo, kg:S.kg||0, t:new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}), conf:0, loaiXe:"Xe tải"});
         persist(); render();
       };
-      desk.querySelectorAll("[data-ex]").forEach(function(card){
-        card.onclick=function(){
-          var id=card.getAttribute("data-ex");
-          var x=(S.exceptions||[]).find(function(e){return e.id===id;});
-          if(!x) return;
-          document.getElementById("exform").innerHTML=
-            '<div class="grid two" style="margin-top:12px"><label>Biển số<input id="exp" value="'+(x.p||"")+'"></label><label>Chủ xe<input id="exo" value="'+(x.owner||"")+'"></label><label>Loại hàng<input id="exc" value="'+cargoName(x.cargo)+'"></label><label>Ghi chú<input id="exn" value="'+(x.note||"")+'"></label></div><button class="gold" id="exsave" style="margin-top:10px">Lưu</button>';
-          document.getElementById("exsave").onclick=function(){
-            x.p=document.getElementById("exp").value.trim();
-            x.owner=document.getElementById("exo").value.trim();
-            x.cargo=document.getElementById("exc").value.trim();
-            x.note=document.getElementById("exn").value.trim();
-            persist(); render();
-          };
+      desk.querySelectorAll("[data-edit]").forEach(function(b){
+        b.onclick=function(ev){
+          ev.stopPropagation();
+          var kind=b.getAttribute("data-edit"), id=b.getAttribute("data-id");
+          var box=document.getElementById("exform");
+          if(kind==="open"){
+            var x=S.open.find(function(e){return e.id===id;}); if(!x) return;
+            box.innerHTML='<div class="card" style="margin-top:12px"><p class="kicker">Sửa '+x.p+'</p><p class="sub">Khóa: ảnh, biển, số cân.</p><div class="grid two"><label>Loại hàng<input id="ef-cargo" value="'+cargoName(x.cargo)+'"></label><label>Chủ xe<input id="ef-owner" value="'+(x.owner||"")+'"></label><label>Tài xế<input id="ef-driver" value="'+(x.driver||"")+'"></label></div><button class="gold" id="ef-save" style="margin-top:10px">Lưu</button></div>';
+            document.getElementById("ef-save").onclick=function(){ x.cargo=document.getElementById("ef-cargo").value.trim(); x.owner=document.getElementById("ef-owner").value.trim(); x.driver=document.getElementById("ef-driver").value.trim(); persist(); render(); };
+          } else if(kind==="ex"){
+            var x=(S.exceptions||[]).find(function(e){return e.id===id;}); if(!x) return;
+            box.innerHTML='<div class="card" style="margin-top:12px"><p class="kicker">Sửa ngoại lệ</p><p class="sub">Khóa: ảnh, biển, số cân.</p><div class="grid two"><label>Loại hàng<input id="ef-cargo" value="'+cargoName(x.cargo)+'"></label><label>Chủ xe<input id="ef-owner" value="'+(x.owner||"")+'"></label><label>Ghi chú<input id="ef-note" value="'+(x.note||"")+'"></label></div><button class="gold" id="ef-save" style="margin-top:10px">Lưu</button></div>';
+            document.getElementById("ef-save").onclick=function(){ x.cargo=document.getElementById("ef-cargo").value.trim(); x.owner=document.getElementById("ef-owner").value.trim(); x.note=document.getElementById("ef-note").value.trim(); persist(); render(); };
+          } else {
+            var x=S.day.find(function(e){return e.p===id;}); if(!x) return;
+            var starch=String(x.cargo||"").indexOf("mì")>=0 || String(x.cargo||"").indexOf("cu_mi")>=0;
+            box.innerHTML='<div class="card" style="margin-top:12px"><p class="kicker">Sửa phiên '+x.p+'</p><p class="sub">Khóa: ảnh, biển, số cân'+(starch?", điểm bột":"")+ '.</p><div class="grid two"><label>Loại xe<input id="ef-xe" value="'+(x.loaiXe||"")+'"></label><label>Chủ xe<input id="ef-owner" value="'+(x.owner||"")+'"></label><label>Nhập/Xuất<select id="ef-flow"><option'+(x.lx!=="Lấy"?" selected":"")+'>Nhập hàng</option><option'+(x.lx==="Lấy"?" selected":"")+'>Xuất hàng</option></select></label><label>Mặt hàng<input id="ef-cargo" value="'+(x.cargo||"")+'"></label><label>Loại bao<input id="ef-bao" value="'+(x.bao||"")+'"></label></div><button class="gold" id="ef-save" style="margin-top:10px">Lưu</button></div>';
+            document.getElementById("ef-save").onclick=function(){ x.loaiXe=document.getElementById("ef-xe").value.trim(); x.owner=document.getElementById("ef-owner").value.trim(); x.lx=document.getElementById("ef-flow").value==="Xuất hàng"?"Lấy":"Xả"; x.cargo=document.getElementById("ef-cargo").value.trim(); x.bao=document.getElementById("ef-bao").value.trim(); persist(); render(); };
+          }
+        };
+      });
+      desk.querySelectorAll("[data-zoom]").forEach(function(el){
+        el.ondblclick=function(){
+          var z=document.getElementById("zoom");
+          z.innerHTML='<img src="'+el.getAttribute("data-zoom")+'">';
+          z.className="zoom on";
+          z.onclick=function(){ z.className="zoom"; z.innerHTML=""; };
         };
       });
     }
@@ -315,5 +335,6 @@
     });
     render();
   </script>
+<div id="zoom" class="zoom"></div>
 </body>
 </html>
