@@ -25,11 +25,11 @@
     button.ghost{background:#4a1820;color:var(--fg);border:1px solid var(--line)}
     button.on, .chip.on{border-color:var(--gold);color:var(--gold)}
 
-    .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
-    .kid{background:#4a1820;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;min-height:280px}
+    .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
+    .kid{background:#4a1820;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;min-height:230px}
     .kid.closed{min-height:320px}
-    .thumb{height:120px;border-radius:10px;background:#2a0a12;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:8px}
-    .plate{font-family:"Barlow Condensed",sans-serif;font-size:28px;color:var(--plate);margin:8px 0 4px}
+    .thumb{height:88px;border-radius:8px;background:#2a0a12;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:6px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .plate{font-family:"Barlow Condensed",sans-serif;font-size:22px;color:var(--plate);margin:6px 0 2px}
     .meta{font-size:13px;color:var(--muted);line-height:1.45}
     .meta b{color:var(--fg);font-weight:600}
     .section{margin-top:14px}
@@ -196,12 +196,13 @@
     function dayLabel(off){
       return ["Hôm nay","Hôm qua","2 hôm trước","3 hôm trước"][off];
     }
-    function thumb(label){
+    function thumb(label, src, cap){
+      if(src) return '<div class="thumb"><img src="'+src+'" alt="'+label+'"><span style="display:none">'+label+'</span></div>'+(cap?'<div class="meta" style="margin-top:4px">'+cap+'</div>':'');
       return '<div class="thumb">'+label+'<br>Ảnh ghép F · R · S<br>chờ OCR</div>';
     }
     function deskCan(desk){
       var openCards=S.open.length?S.open.map(function(x){
-        return '<article class="kid">'+thumb("Trong nhà máy")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div></article>';
+        return '<article class="kid">'+thumb("Trong nhà máy","/shot/thu-20261008-174622.jpg","08/10 17:46 · không khớp phiếu đơn")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div></article>';
       }).join(""):'<p class="sub">Không có xe trong nhà máy.</p>';
       var ex=S.exceptions||[];
       var exCards=ex.length?ex.map(function(x){
