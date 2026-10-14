@@ -25,12 +25,12 @@
     button.ghost{background:#4a1820;color:var(--fg);border:1px solid var(--line)}
     button.on, .chip.on{border-color:var(--gold);color:var(--gold)}
 
-    .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px}
-    .kid{background:#4a1820;border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;min-height:230px}
-    .kid.closed{min-height:320px}
-    .thumb{height:88px;border-radius:8px;background:#2a0a12;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:6px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .plate{font-family:"Barlow Condensed",sans-serif;font-size:22px;color:var(--plate);margin:6px 0 2px}
-    .meta{font-size:13px;color:var(--muted);line-height:1.45}
+    .kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:8px}
+    .kid{background:#4a1820;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;min-height:190px}
+    .kid.closed{min-height:250px}
+    .thumb{height:64px;border-radius:8px;background:#2a0a12;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:6px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .plate{font-family:"Barlow Condensed",sans-serif;font-size:18px;color:var(--plate);margin:4px 0 2px}
+    .meta{font-size:12px;color:var(--muted);line-height:1.4}
     .meta b{color:var(--fg);font-weight:600}
     .section{margin-top:14px}
     .closed-wrap{border:1px solid var(--gold);box-shadow:0 0 0 1px rgba(212,175,55,.15)}
@@ -202,7 +202,7 @@
     }
     function deskCan(desk){
       var openCards=S.open.length?S.open.map(function(x){
-        return '<article class="kid">'+thumb("Trong nhà máy","/shot/thu-20261008-174622.jpg","08/10 17:46 · không khớp phiếu đơn")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div></article>';
+        return '<article class="kid">'+thumb("Trong nhà máy")+'<div class="plate">'+(x.p||"—")+'</div><div class="meta">TL tổng <b>'+Number(x.kg||0).toLocaleString("vi-VN")+' kg</b><br>Loại hàng <b>'+cargoName(x.cargo)+'</b><br>Chủ xe <b>'+(x.owner||"—")+'</b></div></article>';
       }).join(""):'<p class="sub">Không có xe trong nhà máy.</p>';
       var ex=S.exceptions||[];
       var exCards=ex.length?ex.map(function(x){
@@ -221,10 +221,21 @@
       desk.innerHTML=
         '<div class="card section"><p class="kicker">Xe đang trong nhà máy</p><div class="kids">'+openCards+'</div></div>'+
         '<div class="card section"><p class="kicker">Ngoại lệ — cần bổ sung tay</p><p class="sub">Không đọc được biển, thiếu loại hàng, thiếu chủ xe, mặt hàng khác, hoặc nhờ thuê cân. Bấm thẻ để sửa rồi lưu.</p><div class="kids">'+exCards+'</div><div id="exform"></div></div>'+
-        '<div class="card section closed-wrap"><p class="kicker">Phiên đã đóng</p><div class="days">'+days+'</div><div class="kids">'+closedCards+'</div></div>';
+        '<div class="card section closed-wrap"><p class="kicker">Phiên đã đóng</p><div class="days">'+days+'</div><div class="kids">'+closedCards+'</div></div>'+
+        '<div class="card section"><p class="kicker">Nhập bổ sung tay</p><p class="sub">Dùng khi mặt hàng khác hoặc khách khác, chưa có trong danh sách.</p><div class="grid two"><label>Loại hàng<select id="cg">'+CARGO.map(function(c){return '<option value="'+c[0]+'"'+(S.cargo===c[0]?" selected":"")+'>'+c[1]+'</option>';}).join("")+'</select></label><label>Tài xế<input id="dr" value="'+(S.driver||"")+'"></label><label>Chủ xe<input id="ow" value="'+(S.owner||"")+'"></label><label>Mặt hàng khác<input id="cg2" placeholder="Nếu chọn Khác"></label></div><button class="gold" id="ok" style="margin-top:10px">Xác nhận vào bãi</button></div>';
       desk.querySelectorAll("[data-day]").forEach(function(b){
         b.onclick=function(){ S.dayOff=Number(b.getAttribute("data-day")); persist(); render(); };
       });
+      document.getElementById("ok").onclick=function(){
+        S.cargo=document.getElementById("cg").value;
+        S.driver=document.getElementById("dr").value.trim();
+        S.owner=document.getElementById("ow").value.trim();
+        var extra=document.getElementById("cg2").value.trim();
+        var cargo=S.cargo==="khac"&&extra?extra:S.cargo;
+        if(!S.owner){ alert("Nhập chủ xe hoặc khách khác."); return; }
+        S.open.unshift({id:"o"+Date.now(), p:S.plate||"Chưa có biển", driver:S.driver, owner:S.owner, cargo:cargo, kg:S.kg||0, t:new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}), conf:0, loaiXe:"Xe tải"});
+        persist(); render();
+      };
       desk.querySelectorAll("[data-ex]").forEach(function(card){
         card.onclick=function(){
           var id=card.getAttribute("data-ex");
