@@ -54,11 +54,32 @@ function json(status, obj) {
   });
 }
 
+function ticketsPage(rows) {
+  const body = rows.map(x => {
+    const when = String(x.ts || "").replace("T", " ").slice(0, 19);
+    const val = x.source === "starch" ? (x.starch_pct ?? "") + " %" : (x.kg ?? "");
+    return "<tr><td>" + when + "</td><td>" + x.source + "</td><td>" + val + "</td><td>" + (x.direction || "") + "</td></tr>";
+  }).join("");
+  return new Response(`<!doctype html><meta charset="utf-8"><title>Phiếu đơn</title>
+<style>body{font:14px/1.4 system-ui;margin:24px;background:#2a0a12;color:#f6eee6}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #6b2a34;padding:8px;text-align:left}a{color:#d4af37}</style>
+<p><a href="/">← Trang chủ</a></p><h1>Phiếu đơn</h1><p>Mỗi lần cân một dòng. Chưa ghép phiên.</p>
+<table><tr><th>Giờ</th><th>Nguồn</th><th>Số</th><th>Chiều</th></tr>${body}</table>`, {
+    headers: { "content-type": "text/html;charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/ingest" && request.method === "POST") return handleIngest(request, env);
     if (url.pathname === "/api/tickets" && request.method === "GET") return listTickets(env);
+    if (url.pathname === "/phieu") {
+      if (!env.TICKETS) return new Response("chua co bang", { status: 503 });
+      const rs = await env.TICKETS.prepare(
+        "SELECT source, kg, starch_pct, ts, direction FROM tickets ORDER BY ts DESC LIMIT 200"
+      ).all();
+      return ticketsPage(rs.results || []);
+    }
     return new Response(HTML, {
       headers: {
         "content-type": "text/html;charset=utf-8",
