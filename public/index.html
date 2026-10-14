@@ -29,6 +29,7 @@
     .kid{background:#4a1820;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;min-height:190px}
     .kid.closed{min-height:250px}
     .thumb{height:64px;border-radius:8px;background:#2a0a12;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:6px;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .pair{display:grid;gap:4px}.pair .thumb{height:56px}.pair .cap{font-size:10px;color:var(--muted);letter-spacing:.08em}
     .plate{font-family:"Barlow Condensed",sans-serif;font-size:18px;color:var(--plate);margin:4px 0 2px}
     .meta{font-size:12px;color:var(--muted);line-height:1.4}
     .meta b{color:var(--fg);font-weight:600}
@@ -127,7 +128,7 @@
           kg:21440, note:"Nhờ thuê cân 1 lần"
         }],
         day:[{
-          ngay:new Date().toLocaleDateString("vi-VN"), gio:"16:20", vao:"16:02", ra:"16:20", loaiXe:"Xe tải", bao:"Bao 50 kg", p:"51C-889.12", driver:"Nguyễn Văn Tám", owner:"Cty Minh",
+          ngay:new Date().toLocaleDateString("vi-VN"), gio:"16:20", vao:"16:02", ra:"16:20", loaiXe:"Xe tải", bao:"Bao 50 kg", vaoImg:"/shot/thu-20261008-174622.jpg", raImg:"/shot/thu-20261008-174622.jpg", p:"51C-889.12", driver:"Nguyễn Văn Tám", owner:"Cty Minh",
           vr:"Vào→Ra", lx:"Xả", tong:31280, hang:12860, xe:18420,
           cargo:"Củ mì tươi nguyên liệu", diem:28.4, tap:2
         },{
@@ -220,7 +221,7 @@
       var closed=S.day.filter(function(x){return x.ngay===want;});
       var closedCards=closed.length?closed.map(function(x){
         var flow=x.lx==="Lấy"?"Xuất hàng":"Nhập hàng";
-        return '<article class="kid closed">'+thumb("Hình đầu xe")+'<div class="plate">'+x.p+'</div><div class="meta">Loại xe <b>'+(x.loaiXe||"Xe tải")+'</b><br>Chủ xe <b>'+x.owner+'</b><br>Vào <b>'+x.ngay+' '+(x.vao||x.gio)+'</b><br>Ra <b>'+x.ngay+' '+(x.ra||x.gio)+'</b><br><b>'+flow+'</b><br>Mặt hàng <b>'+x.cargo+'</b><br>Loại bao <b>'+(x.bao||"—")+'</b>'+(x.diem!==""&&x.diem!=null?'<br>Điểm bột <b>'+x.diem+' %</b>':'')+'</div>'+editBtn("day", x.p)+'</article>';
+        return '<article class="kid closed"><div class="pair">'+thumb("Vào", x.vaoImg, "Vào")+'<div class="cap">VÀO</div>'+thumb("Ra", x.raImg, "Ra")+'<div class="cap">RA</div></div><div class="plate">'+x.p+'</div><div class="meta">Loại xe <b>'+(x.loaiXe||"Xe tải")+'</b><br>Chủ xe <b>'+x.owner+'</b><br>Vào <b>'+x.ngay+' '+(x.vao||x.gio)+'</b><br>Ra <b>'+x.ngay+' '+(x.ra||x.gio)+'</b><br><b>'+flow+'</b><br>Mặt hàng <b>'+x.cargo+'</b><br>Loại bao <b>'+(x.bao||"—")+'</b>'+(x.diem!==""&&x.diem!=null?'<br>Điểm bột <b>'+x.diem+' %</b>':'')+'</div>'+editBtn("day", x.p)+'</article>';
       }).join(""):'<p class="sub">Không có phiên đóng ngày này.</p>';
       var days=[0,1,2,3].map(function(n){
         return '<button type="button" data-day="'+n+'" class="'+(n===off?"on":"")+'">'+dayLabel(n)+'</button>';
