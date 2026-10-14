@@ -8,7 +8,7 @@ Hệ thống chụp hình, lưu biển số và cân nặng tự động — nh�
 - Bản đồ đã chốt: [docs/HE-THONG-CAN-XE-BINH-MINH.md](./docs/HE-THONG-CAN-XE-BINH-MINH.md) · cách không bỏ sót app: [docs/LIEN-KET-PHAN-MEM-CANCOMP.md](./docs/LIEN-KET-PHAN-MEM-CANCOMP.md)
 - Kiến trúc máy cân: [docs/cancomp.md](./docs/cancomp.md) — PC độc lập **CANcomp** + DTECH + sync HTTPS. Một số câu trong file này còn cửa 2 giây và ảnh xám; luật đang chạy nằm ở whitepaper và app.
 - Whitepaper: [WHITEPAPER.md](./WHITEPAPER.md) — mục tiêu còn hiệu lực, bản 09/10/2026
-- 10 việc: [docs/TASKS.md](./docs/TASKS.md) — issue [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11). Hàng đợi tháng 9, không thay whitepaper.
+- Việc tiếp theo: [docs/TASKS.md](./docs/TASKS.md) — tối ưu app desktop, lắp cam thật và ingest thật, rồi các dòng “Chưa đạt” của whitepaper. Issue #2–#11 là hàng đợi tháng 9, hướng cam/xe đồ chơi đã bỏ.
 - Backup mill không logo: nhánh `backup/v5-pre-logo`
 
 Repo gốc là repo này. Không dùng bản copy `bm-can-xe` (bot import).
