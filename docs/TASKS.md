@@ -1,6 +1,6 @@
 # Việc tiếp theo — theo whitepaper 09/10/2026
 
-Căn cứ: [WHITEOBSER.md](../WHITEPAPER.md) mục 5 “Chưa đạt”. File này thay danh sách 10 việc tháng 9 (cửa 2 giây, mock xe đồ chơi, máy bột gửi sẵn `%`) — đó là hướng cũ.
+Căn cứ: [WHITEPAPER.md](../WHITEPAPER.md) mục 5 “Chưa đạt”. File này thay danh sách 10 việc tháng 9 (cửa 2 giây, mock xe đồ chơi, máy bột gửi sẵn `%`) — đó là hướng cũ.
 
 Issue cũ [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) viết theo bản 12/09. Đọc để tra lịch sử, không làm theo.
 
