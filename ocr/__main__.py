@@ -6,6 +6,10 @@ from ocr.sync import sync_forever
 
 
 def main(argv):
+    if "--serve" in argv:
+        from ocr.serve import serve
+        serve()
+        return 0
     if "--sync" in argv:
         sync_forever(once="--once" in argv)
         return 0

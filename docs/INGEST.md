@@ -6,7 +6,7 @@ Phiếu là phiếu đơn. Không ghép Vào với Ra. Chưa có biển thì ch�
 
 ## Máy nào được đụng Cloudflare
 
-Chỉ máy đã `wrangler login` (MinhComp), một lần khi đưa bản mới lên. CANcomp không đăng nhập Cloudflare, không chạy `wrangler`, không tạo bucket. CANcomp chỉ chạy app desktop, giữ `X-Station-Key`, và POST tới `https://canxe.redtigerhead.com/api/ingest`.
+Chỉ máy đã `wrangler login` (MinhComp), một lần khi đưa bản mới lên. CANcomp không đăng nhập Cloudflare, không chạy `wrangler`, không tạo bucket. CANcomp chạy app desktop, đọc biển bằng Python local, giữ `X-Station-Key`, và POST JSON tới `https://canxe.redtigerhead.com/api/ingest`.
 
 ```
 npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
@@ -16,7 +16,7 @@ npx wrangler deploy
 
 Secret `STATION_KEY` nằm trên worker `bm-can-xe`. Không commit khóa. `XAI_API_KEY` chỉ khi bật `OCR_ENGINE=xai` sau này.
 
-Cột ảnh và OCR được thêm lúc request đầu nếu bảng cũ chưa có. File `worker/migrate-shot.sql` và `worker/migrate-ocr.sql` là cùng các lệnh ALTER đó.
+Cột ảnh, OCR và sân được thêm lúc request đầu nếu bảng cũ chưa có. File `worker/migrate-shot.sql`, `worker/migrate-ocr.sql` và `worker/migrate-yard.sql` là cùng các lệnh ALTER đó.
 
 Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa production trước khi đối 20 lượt sạch.
 
@@ -29,27 +29,48 @@ Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa pr
 
 Ảnh vào bucket R2 `bm-can-xe-shots`, khóa `shots/{id}.jpg`. Xem lại bằng `GET /api/shot?id={id}`.
 
-## OCR
+## OCR và sân nhà máy
 
-Đường mặc định không gọi model AI.
+Ảnh ghép trong `shots/` vẫn đi kèm phiếu, tối đa 1 MB, giữ 60 ngày. Đường đó không đổi.
 
-1. YOLOv8 tìm khung biển trên từng lớp F, R, S, rồi tìm khung chữ trong biển đó.
-2. PaddleOCR đọc từng hàng chữ và ghép thành biển. Khớp dạng Việt Nam và độ tin ≥ 0.8 mới ghi `ok`. Lệch giữa hai lớp, hoặc không đủ tin, thì `unread` và biển để trống.
+Biển đọc trên CANcomp, không đọc trên worker và không đọc trên MinhComp cho lượt đang cân. Ba ảnh gốc (đúng độ phân giải camera) nằm trong `packs/{id}/`, máy cân tự xóa sau 7 ngày. Ảnh gốc không lên mạng.
 
-Worker không chạy được YOLO. MinhComp chạy vòng lặp, CANcomp không chạy.
+Ngân sách 10 giây kể từ lúc xe đứng yên:
+
+1. 0–3 giây: cao nguyên. Đèn bật khi cân đã vượt đỉnh, không đợi hết 3 giây.
+2. Ngay sau đó: ba camera chụp một lần. Ảnh ghép và ảnh gốc ra cùng lúc.
+3. YOLOv8n (640) tìm khung biển trên ảnh gốc, PaddleOCR chỉ đọc phần biển. Thời gian OCR local khoảng 3 giây.
+4. Đối chiếu sổ luồng tại máy. Sổ không lớn theo từng lượt cân.
+5. POST một JSON nhỏ: biển, biển remooc nếu có, kg, giờ, quen/lạ, thẻ, tên khách nếu có trong sổ.
+
+Chưa đọc được biển thì phiếu vẫn lên, cột biển trống, trạng thái chờ. Đó không phải xe lạ. Xe lạ là biển đã đọc và không có trong sổ: thẻ Khác, không có tên, vẫn vào sân. Lượt đầu là vào. Lượt sau cùng biển là ra và rời sân. Nút Vào/Ra cũ của phiếu cân không bị gộp thành phiên.
+
+Worker không chạy YOLO. `OCR_ENGINE=xai` vẫn tắt. Không cần `XAI_API_KEY`.
+
+Trang `/` là ba thẻ Nhập mì, Xuất bột, Khác. Trang thử cũ ở `/demo`. Phiếu ngày ở `/phieu`.
+
+## Sáng mai
+
+MinhComp, một lần:
+
+```
+npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
+npx wrangler r2 bucket create bm-can-xe-shots
+npx wrangler deploy
+```
+
+`schema.sql` trên bảng đã có sẽ báo cột trùng. Khi đó dùng `worker/migrate-yard.sql` cho cột còn thiếu, hoặc để request đầu tự ALTER. Bucket đã có thì bỏ lệnh tạo bucket.
+
+CANcomp:
 
 ```
 pip install -r ocr/requirements.txt
 ```
 
-Đặt trọng số đã train biển Việt Nam tại `ocr/models/plate.pt` và `ocr/models/char.pt` (không commit). Rồi:
+Đặt `ocr/models/plate.pt` và `ocr/models/char.pt` cạnh app (không commit). Mở BM Auto Cân. App tự gọi `python -m ocr --serve` nếu cổng 8765 còn trống. Process phải đứng sẵn trước xe đầu tiên, nếu không lần nạp model trễ quá 10 giây và biển để trống.
 
-```
-STATION_KEY=... python -m ocr --sync
-```
+Mở Sổ luồng (PIN), nhập biển quen, tên khách hoặc nhà cung cấp, và thẻ. Sổ trống thì mọi biển đọc được đều là xe lạ.
 
-Lệnh đó lấy `GET /api/ocr-queue`, tải ảnh, đọc, và `POST /api/ocr` để ghi biển. Desktop vẫn hỏi `GET /api/ocr?id=...`.
+`STATION_KEY` đã có trong appsettings của CANcomp. Không ghi vào git. CANcomp không chạy `wrangler`.
 
-Một file để thử: `python -m ocr anh.jpg`.
-
-`OCR_ENGINE=xai` trên worker là đường model AI để sau này, khi nguồn mở đã có số liệu. Chưa bật thì không cần `XAI_API_KEY`. Không làm rớt số kg vì OCR.
+Chưa có hai file `.pt` thì số kg và ảnh ghép vẫn lên. Biển chưa đọc được.

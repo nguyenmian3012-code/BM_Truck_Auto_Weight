@@ -15,6 +15,22 @@ CREATE TABLE IF NOT EXISTS tickets (
   vehicle_type TEXT,
   cargo_guess TEXT,
   ocr_status TEXT,
-  ocr_json TEXT
+  ocr_json TEXT,
+  trailer_plate TEXT,
+  customer TEXT,
+  yard_card TEXT,
+  yard_note TEXT,
+  familiarity TEXT,
+  visit TEXT
 );
 CREATE INDEX IF NOT EXISTS ix_tickets_ts ON tickets(ts);
+CREATE TABLE IF NOT EXISTS yard (
+  plate TEXT PRIMARY KEY,
+  customer TEXT,
+  yard_card TEXT,
+  yard_note TEXT,
+  familiarity TEXT,
+  kg REAL,
+  ts TEXT,
+  ticket_id TEXT
+);

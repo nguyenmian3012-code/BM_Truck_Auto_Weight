@@ -1,13 +1,13 @@
 """Bước 1: YOLOv8 tìm khung biển và khung chữ. Bước 2: PaddleOCR đọc rồi ghép.
 
-Chạy trên MinhComp. Không chạy trong Cloudflare Worker và không chạy trên CANcomp.
-Model AI (ocr/read-plate.js) không được gọi ở đường này.
+Chạy trên CANcomp cho ảnh gốc từng camera, hoặc trên MinhComp cho ảnh ghép.
+Không chạy trong Cloudflare Worker. Model AI không phải đường mặc định.
 """
 
 import os
 
 from ocr.lanes import split_lanes
-from ocr.text import choose, join_lines, line_groups
+from ocr.text import assign_plates, choose, join_lines, line_groups
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PLATE_MODEL = os.environ.get("PLATE_MODEL", os.path.join(ROOT, "models", "plate.pt"))
@@ -48,7 +48,7 @@ def _reader_once():
 
 
 def predict(model, bgr, conf=0.25):
-    found = model.predict(bgr, conf=conf, verbose=False)
+    found = model.predict(bgr, conf=conf, imgsz=640, verbose=False)
     if not found:
         return []
     res = found[0]
@@ -187,4 +187,25 @@ def read_image(jpeg):
     chosen["engine"] = "yolov8-paddleocr"
     chosen.setdefault("vehicle", "")
     chosen.setdefault("cargo", "")
+    return chosen
+
+
+def read_files(paths):
+    """Mỗi phần tử là (làn, đường dẫn JPEG gốc). Không cắt ảnh ghép."""
+    import cv2
+
+    plate_net, char_net = _nets_once()
+    reader = _reader_once()
+    hits = []
+    for lane, path in paths:
+        img = cv2.imread(path)
+        if img is None:
+            hits.append({"lane": lane, "plate": "", "confidence": 0.0})
+            continue
+        found = read_lane(plate_net, char_net, reader, img)
+        hits.append({"lane": lane, "plate": found["plate"], "confidence": round(found["confidence"], 4)})
+    chosen = assign_plates(hits)
+    chosen["status"] = "ok" if chosen["plate"] else "unread"
+    chosen["lanes"] = hits
+    chosen["engine"] = "yolov8-paddleocr"
     return chosen

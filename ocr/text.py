@@ -97,3 +97,31 @@ def choose(candidates):
     best["reason"] = ""
     best["guess"] = ""
     return best
+
+
+def assign_plates(hits, conf_ok=CONF_OK):
+    """Biển xe là cụm chắc nhất. Biển khác, nếu cũng đủ tin, là biển remooc."""
+    clusters = {}
+    for hit in hits or []:
+        plate = hit.get("plate") or ""
+        if not plate:
+            continue
+        row = clusters.setdefault(plate, {"plate": plate, "confidence": 0.0, "n": 0})
+        row["n"] += 1
+        row["confidence"] = max(row["confidence"], float(hit.get("confidence") or 0))
+    ranked = sorted(
+        clusters.values(),
+        key=lambda c: c["confidence"] + (0.05 if c["n"] >= 2 else 0),
+        reverse=True,
+    )
+
+    def score(row):
+        return min(1.0, row["confidence"] + (0.05 if row["n"] >= 2 else 0))
+
+    truck, trailer, confidence = "", "", 0.0
+    if ranked and score(ranked[0]) >= conf_ok:
+        truck = ranked[0]["plate"]
+        confidence = score(ranked[0])
+    if len(ranked) > 1 and score(ranked[1]) >= conf_ok:
+        trailer = ranked[1]["plate"]
+    return {"plate": truck, "trailerPlate": trailer, "confidence": confidence}

@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from ocr.lanes import split_lanes
-from ocr.text import choose, join_lines, line_groups, normalize_plate
+from ocr.text import assign_plates, choose, join_lines, line_groups, normalize_plate
 
 
 class TextTests(unittest.TestCase):
@@ -54,6 +54,18 @@ class TextTests(unittest.TestCase):
         self.assertLess(abs(lanes["F"].shape[0] - 200), 8)
         self.assertGreater(lanes["R"].shape[1], 200)
         self.assertGreater(lanes["S"].shape[0], 80)
+
+    def test_trailer(self):
+        both = assign_plates([
+            {"plate": "51C-248.19", "confidence": 0.91},
+            {"plate": "51C-248.19", "confidence": 0.84},
+            {"plate": "70R-013.71", "confidence": 0.88},
+        ])
+        self.assertEqual(both["plate"], "51C-248.19")
+        self.assertEqual(both["trailerPlate"], "70R-013.71")
+        weak = assign_plates([{"plate": "51C-248.19", "confidence": 0.4}])
+        self.assertEqual(weak["plate"], "")
+        self.assertEqual(weak["trailerPlate"], "")
 
 
 if __name__ == "__main__":
