@@ -11,11 +11,10 @@ Chỉ máy đã `wrangler login` (MinhComp), một lần khi đưa bản mới l
 ```
 npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
 npx wrangler r2 bucket create bm-can-xe-shots
-npx wrangler secret put XAI_API_KEY
 npx wrangler deploy
 ```
 
-Secret `STATION_KEY` và `XAI_API_KEY` đã (hoặc sẽ) nằm trên worker `bm-can-xe`. Không commit khóa.
+Secret `STATION_KEY` nằm trên worker `bm-can-xe`. Không commit khóa. `XAI_API_KEY` chỉ khi bật `OCR_ENGINE=xai` sau này.
 
 Cột ảnh và OCR được thêm lúc request đầu nếu bảng cũ chưa có. File `worker/migrate-shot.sql` và `worker/migrate-ocr.sql` là cùng các lệnh ALTER đó.
 
@@ -32,8 +31,25 @@ Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa pr
 
 ## OCR
 
-Có ảnh thì worker gọi lớp `ocr/read-plate.js` sau khi đã lưu phiếu. Model `grok-4.7` đọc riêng ba lớp CAN_F, CAN_R, CAN_S. Biển chỉ được chốt khi khớp dạng Việt Nam và độ tin ≥ 0.8. Không khóa, lỗi mạng, hoặc JSON hỏng thì `ocrStatus` là `pending` và biển để trống. Đọc xong mà không đủ tin thì `unread`, vẫn không bịa biển.
+Đường mặc định không gọi model AI.
 
-Desktop gửi ảnh cùng phiếu, rồi hỏi `GET /api/ocr?id={id}` với header `X-Station-Key` cho đến khi ra `ok` hoặc `unread`.
+1. YOLOv8 tìm khung biển trên từng lớp F, R, S, rồi tìm khung chữ trong biển đó.
+2. PaddleOCR đọc từng hàng chữ và ghép thành biển. Khớp dạng Việt Nam và độ tin ≥ 0.8 mới ghi `ok`. Lệch giữa hai lớp, hoặc không đủ tin, thì `unread` và biển để trống.
 
-Không có khóa xAI thì cân vẫn vào. Không làm rớt số kg vì OCR.
+Worker không chạy được YOLO. MinhComp chạy vòng lặp, CANcomp không chạy.
+
+```
+pip install -r ocr/requirements.txt
+```
+
+Đặt trọng số đã train biển Việt Nam tại `ocr/models/plate.pt` và `ocr/models/char.pt` (không commit). Rồi:
+
+```
+STATION_KEY=... python -m ocr --sync
+```
+
+Lệnh đó lấy `GET /api/ocr-queue`, tải ảnh, đọc, và `POST /api/ocr` để ghi biển. Desktop vẫn hỏi `GET /api/ocr?id=...`.
+
+Một file để thử: `python -m ocr anh.jpg`.
+
+`OCR_ENGINE=xai` trên worker là đường model AI để sau này, khi nguồn mở đã có số liệu. Chưa bật thì không cần `XAI_API_KEY`. Không làm rớt số kg vì OCR.

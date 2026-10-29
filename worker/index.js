@@ -48,6 +48,7 @@ function triedAt(row) {
 }
 
 function shouldRead(row, env) {
+  if (env.OCR_ENGINE !== "xai") return false;
   const status = String(row.ocr_status || "");
   if (!row.shot_key || !env.XAI_API_KEY) return false;
   if (status === "ok" || status === "unread") return false;
@@ -133,7 +134,7 @@ async function handleIngest(request, env, ctx) {
     await env.SHOTS.put(shotKey, jpeg, { httpMetadata: { contentType: "image/jpeg" } });
   }
   await ensureShotColumns(env);
-  const queued = shotKey ? JSON.stringify({ triedAt: new Date().toISOString(), reason: "queued" }) : "";
+  const queued = shotKey ? JSON.stringify({ triedAt: new Date().toISOString(), reason: "yolo-paddle" }) : "";
   await env.TICKETS.prepare(
     `INSERT INTO tickets
      (id, station_id, source, kg, starch_pct, stable, ts, raw, direction, received_at, shot_key, shot_name, plate, vehicle_type, cargo_guess, ocr_status, ocr_json)
@@ -163,7 +164,7 @@ async function handleIngest(request, env, ctx) {
     queued
   ).run();
   let ocr = { status: shotKey ? "pending" : "", plate: "", vehicle: "", cargo: "", confidence: 0 };
-  if (jpeg) {
+  if (jpeg && env.OCR_ENGINE === "xai") {
     const inline = scheduleOcr(ctx, env, id, jpeg);
     if (inline) {
       try {
@@ -212,6 +213,85 @@ async function handleOcr(request, env) {
     }
   }
   return json(200, ocrView(row));
+}
+
+async function handleOcrQueue(request, env) {
+  const key = request.headers.get("x-station-key") || "";
+  if (!env.STATION_KEY) return json(503, { error: "STATION_KEY chua gan" });
+  if (key !== env.STATION_KEY) return json(401, { error: "sai khoa" });
+  if (!env.TICKETS) return json(503, { error: "chua co bang phieu" });
+  await ensureShotColumns(env);
+  const rs = await env.TICKETS.prepare(
+    `SELECT id, shot_key, ocr_status, ts FROM tickets
+     WHERE IFNULL(shot_key, '') != ''
+       AND IFNULL(ocr_status, '') IN ('pending', '')
+     ORDER BY received_at ASC
+     LIMIT 8`
+  ).all();
+  const tickets = (rs.results || []).map((row) => ({
+    id: row.id,
+    ts: row.ts || "",
+    ocrStatus: row.ocr_status || "pending",
+    shot: "/api/shot?id=" + row.id,
+  }));
+  return json(200, { tickets });
+}
+
+const PLATE_RE = /^\d{2}[A-Z]{1,2}-?\d{3,5}(?:\.\d{2})?$/;
+
+function cleanPlate(raw) {
+  const found = String(raw || "").toUpperCase().replace(/[^0-9A-Z.-]/g, "").match(/\d{2}[A-Z]{1,2}-?\d{3,5}(?:\.\d{2})?/);
+  if (!found) return "";
+  let plate = found[0];
+  if (/^\d{2}[A-Z]{1,2}\d/.test(plate) && !plate.includes("-"))
+    plate = plate.replace(/^(\d{2}[A-Z]{1,2})(\d)/, "$1-$2");
+  return PLATE_RE.test(plate) ? plate : "";
+}
+
+async function handleOcrWrite(request, env) {
+  const key = request.headers.get("x-station-key") || "";
+  if (!env.STATION_KEY) return json(503, { error: "STATION_KEY chua gan" });
+  if (key !== env.STATION_KEY) return json(401, { error: "sai khoa" });
+  if (!env.TICKETS) return json(503, { error: "chua co bang phieu" });
+  let body;
+  try { body = await request.json(); }
+  catch { return json(400, { error: "json" }); }
+  const id = String(body.id || "");
+  if (!/^[A-Za-z0-9-]{8,80}$/.test(id)) return json(400, { error: "id" });
+  await ensureShotColumns(env);
+  const row = await loadTicket(env, id);
+  if (!row) return json(404, { error: "khong co phieu" });
+  let status = String(body.ocrStatus || "");
+  if (!["ok", "unread", "pending"].includes(status)) return json(400, { error: "ocrStatus" });
+  const guess = cleanPlate(body.guess || body.plate);
+  let confidence = Number(body.confidence);
+  if (!Number.isFinite(confidence) || confidence < 0) confidence = 0;
+  if (confidence > 1) confidence = confidence / 100;
+  if (confidence > 1) confidence = 1;
+  let plate = status === "ok" ? cleanPlate(body.plate) : "";
+  if (status === "ok" && (!plate || confidence < 0.8)) {
+    status = "unread";
+    plate = "";
+  }
+  const detail = {
+    triedAt: new Date().toISOString(),
+    engine: "yolov8-paddleocr",
+    confidence,
+    reason: String(body.reason || "").slice(0, 160),
+    guess: status === "ok" ? "" : guess,
+    layers: Array.isArray(body.layers) ? body.layers.slice(0, 6) : [],
+  };
+  await env.TICKETS.prepare(
+    "UPDATE tickets SET plate=?, vehicle_type=?, cargo_guess=?, ocr_status=?, ocr_json=? WHERE id=?"
+  ).bind(
+    plate,
+    clipField(body.vehicle),
+    clipField(body.cargo),
+    status,
+    JSON.stringify(detail).slice(0, 4000),
+    id
+  ).run();
+  return json(200, ocrView(await loadTicket(env, id)));
 }
 
 async function serveShot(env, id) {
@@ -305,6 +385,8 @@ export default {
     if (url.pathname === "/api/ingest" && request.method === "POST") return handleIngest(request, env, ctx);
     if (url.pathname === "/api/shot" && request.method === "GET") return serveShot(env, url.searchParams.get("id") || "");
     if (url.pathname === "/api/ocr" && request.method === "GET") return handleOcr(request, env);
+    if (url.pathname === "/api/ocr" && request.method === "POST") return handleOcrWrite(request, env);
+    if (url.pathname === "/api/ocr-queue" && request.method === "GET") return handleOcrQueue(request, env);
     if (url.pathname === "/api/tickets" && request.method === "GET") return listTickets(env, url.searchParams.get("ngay"));
     if (url.pathname === "/phieu") {
       if (!env.TICKETS) return new Response("chua co bang", { status: 503 });

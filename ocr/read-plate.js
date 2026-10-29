@@ -1,6 +1,5 @@
-// Lớp OCR của canxe. Tách 3 lớp ảnh ghép F/R/S bằng mô tả bố cục
-// (CAN_F trái trên, CAN_R phải trên, CAN_S dải dưới) rồi đọc biển.
-// Không chạy trên CANcomp. Không có khóa thì để pending, không bịa biển.
+// Model AI, chưa phải đường mặc định. Chỉ chạy khi worker đặt OCR_ENGINE=xai.
+// Đường đang dùng là ocr/engine.py: YOLOv8 tìm khung, PaddleOCR đọc chữ.
 
 export const PLATE_RE = /^\d{2}[A-Z]{1,2}-?\d{3,5}(?:\.\d{2})?$/;
 const CONF_OK = 0.8;
