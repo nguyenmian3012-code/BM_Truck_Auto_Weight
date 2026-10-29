@@ -1,29 +1,23 @@
 # Mở POST /api/ingest
 
-Route đã nằm trong `worker/index.js`. Chưa live vì máy này không đăng nhập Cloudflare.
+Route đã nằm trong `worker/index.js`.
 
 Phiếu là phiếu đơn. Không ghép Vào với Ra. Chưa có biển thì chưa có phiên.
 
-## Lệnh, chạy trên máy đã `wrangler login`
+## Máy nào được đụng Cloudflare
 
-```
-npx wrangler d1 create bm-can-xe
-```
-
-Gắn `database_id` vừa in vào `wrangler.jsonc`:
-
-```
-"d1_databases": [
-  { "binding": "TICKETS", "database_name": "bm-can-xe", "database_id": "<id>" }
-]
-```
+Chỉ máy đã `wrangler login` (MinhComp), một lần khi đưa bản mới lên. CANcomp không đăng nhập Cloudflare, không chạy `wrangler`, không tạo bucket. CANcomp chỉ chạy app desktop, giữ `X-Station-Key`, và POST tới `https://canxe.redtigerhead.com/api/ingest`.
 
 ```
 npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
+npx wrangler r2 bucket create bm-can-xe-shots
+npx wrangler secret put XAI_API_KEY
 npx wrangler deploy
 ```
 
-Secret `STATION_KEY` đã có trên worker `bm-can-xe`. Không commit khóa.
+Secret `STATION_KEY` và `XAI_API_KEY` đã (hoặc sẽ) nằm trên worker `bm-can-xe`. Không commit khóa.
+
+Cột ảnh và OCR được thêm lúc request đầu nếu bảng cũ chưa có. File `worker/migrate-shot.sql` và `worker/migrate-ocr.sql` là cùng các lệnh ALTER đó.
 
 Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa production trước khi đối 20 lượt sạch.
 
@@ -36,12 +30,10 @@ Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa pr
 
 Ảnh vào bucket R2 `bm-can-xe-shots`, khóa `shots/{id}.jpg`. Xem lại bằng `GET /api/shot?id={id}`.
 
-Một lần, trên máy đã `wrangler login`:
+## OCR
 
-```
-npx wrangler r2 bucket create bm-can-xe-shots
-npx wrangler deploy
-```
+Có ảnh thì worker gọi lớp `ocr/read-plate.js` sau khi đã lưu phiếu. Model `grok-4.7` đọc riêng ba lớp CAN_F, CAN_R, CAN_S. Biển chỉ được chốt khi khớp dạng Việt Nam và độ tin ≥ 0.8. Không khóa, lỗi mạng, hoặc JSON hỏng thì `ocrStatus` là `pending` và biển để trống. Đọc xong mà không đủ tin thì `unread`, vẫn không bịa biển.
 
-Cột `shot_key` và `shot_name` được thêm lúc request đầu. OCR chưa chạy ở route này. Desktop hiện chưa gửi trường `shot`.
+Desktop gửi ảnh cùng phiếu, rồi hỏi `GET /api/ocr?id={id}` với header `X-Station-Key` cho đến khi ra `ok` hoặc `unread`.
 
+Không có khóa xAI thì cân vẫn vào. Không làm rớt số kg vì OCR.
