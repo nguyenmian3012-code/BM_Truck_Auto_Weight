@@ -51,9 +51,10 @@ echo.
 echo Anh da can hom nay: chep HAI file sau sang may can, de BM Auto Can dang mo, bam dup file bat.
 echo   %ROOT%\Gui-lai-anh-hom-nay.bat
 echo   %ROOT%\gui-lai-anh.py
-echo Xe 13:17, bien 70H-082.61: chep them hai file nay sang may can roi bam dup.
-echo   %ROOT%\Ghi-xe-1317.bat
-echo   %ROOT%\ghi-xe-1317.py
+echo Xe hom nay, dien dung the Nhap mi / Xuat bot / Khac: chep ba file nay sang may can, de app dang mo, bam dup.
+echo   %ROOT%\Ghi-luong.bat
+echo   %ROOT%\ghi-luong.py
+echo   %ROOT%\logic\flow.py
 pause
 exit /b 0
 :fail
