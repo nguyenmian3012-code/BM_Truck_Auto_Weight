@@ -9,15 +9,21 @@ if not path or not os.path.isfile(path):
     sys.exit(1)
 day = datetime.date.today().isoformat()
 cx = sqlite3.connect(path, timeout=20)
-n = cx.execute(
+rows = cx.execute(
     """
-    UPDATE events
-    SET shot_synced=0
+    SELECT id, shot_path FROM events
     WHERE source='kingbird'
       AND IFNULL(shot_path, '') != ''
       AND (IFNULL(ts, '') LIKE ? OR IFNULL(created_at, '') LIKE ?)
     """,
     (day + "%", day + "%"),
-).rowcount
+).fetchall()
+n = 0
+for ticket_id, shot_path in rows:
+    cut = shot_path.find(" (")
+    file = (shot_path[:cut] if cut >= 0 else shot_path).strip()
+    if file and os.path.isfile(file):
+        cx.execute("UPDATE events SET shot_synced=0 WHERE id=?", (ticket_id,))
+        n += 1
 cx.commit()
 print("Da mo lai", n, "anh ngay", day)
