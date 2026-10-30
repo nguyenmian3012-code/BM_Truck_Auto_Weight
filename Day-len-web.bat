@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo.
-echo  Day trang canxe len web. Khong go lenh. Khong tao bucket. Khong doi khoa.
+echo  Day trang canxe len web. Khong go lenh. Khong doi khoa.
 echo.
 where git >nul 2>&1 || (echo May nay chua co Git. & pause & exit /b 1)
 where node >nul 2>&1 || (echo May nay chua co Node.js. & pause & exit /b 1)
@@ -15,6 +15,8 @@ cd /d "%ROOT%"
 git checkout main
 git pull --ff-only
 if errorlevel 1 goto fail
+echo Dang kiem tra kho anh...
+call npx --yes wrangler r2 bucket create bm-can-xe-shots
 echo Dang day len Cloudflare...
 call npx --yes wrangler deploy
 if errorlevel 1 (
