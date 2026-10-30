@@ -34,3 +34,8 @@ CREATE TABLE IF NOT EXISTS yard (
   ts TEXT,
   ticket_id TEXT
 );
+CREATE TABLE IF NOT EXISTS shots (
+  key TEXT PRIMARY KEY,
+  bytes INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);

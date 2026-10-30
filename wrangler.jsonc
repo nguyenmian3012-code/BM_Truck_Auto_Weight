@@ -13,5 +13,11 @@
       "database_name": "bm-can-xe",
       "database_id": "a2d7828d-1032-4229-86cc-957f6f432a0d"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SHOTS",
+      "bucket_name": "bm-can-xe-shots"
+    }
   ]
 }

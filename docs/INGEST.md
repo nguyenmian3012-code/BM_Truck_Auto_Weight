@@ -28,11 +28,17 @@ Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa pr
 
 Ảnh vào bucket R2 `bm-can-xe-shots`, khóa `shots/{id}.jpg`. Xem lại bằng `GET /api/shot?id={id}`.
 
+Kho ảnh có trần riêng của nhà máy: **3 GB**. Ảnh nào **quá 60 ngày** cũng bị xóa. Một trong hai điều kiện tới trước thì xóa ảnh cũ nhất trước. Phiếu cân (số kg, giờ, biển) không bị xóa theo ảnh. Xóa ảnh không làm phiếu kg mất.
+
+Miễn phí R2 của Cloudflare là khoảng 10 GB cho cả tài khoản, không phải 10 GB cho từng tên miền. Trần 3 GB nằm trong phần miễn phí đó. Bật R2 một lần trong trang Cloudflare (cần thẻ). Sau đó máy lập trình bấm đúp `Day-len-web.bat`. Máy cân không đụng Cloudflare.
+
+Nếu kho ảnh lỗi lúc gửi, phiếu kg vẫn được lưu, ảnh để trống, lần sau gửi lại.
+
 ## OCR và sân nhà máy
 
-Ảnh ghép nằm trên CANcomp, thư mục `shots/`, tối đa 1 MB, giữ 60 ngày. Không đẩy ảnh lên web. Web chỉ nhận JSON: biển, kg, giờ, thẻ. Kho R2 không dùng, vì tài khoản chưa bật R2 và phần này phải ở mức 0 đồng.
+Ảnh ghép vẫn nằm trên CANcomp, thư mục `shots/`, tối đa 1 MB, giữ 60 ngày tại máy, và được gửi kèm phiếu. Ba ảnh gốc (đúng độ phân giải camera) nằm trong `packs/{id}/`, máy cân tự xóa sau 7 ngày. Ảnh gốc không lên mạng.
 
-Biển đọc trên CANcomp, không đọc trên worker và không đọc trên MinhComp cho lượt đang cân. Ba ảnh gốc (đúng độ phân giải camera) nằm trong `packs/{id}/`, máy cân tự xóa sau 7 ngày. Ảnh gốc không lên mạng.
+Biển đọc trên CANcomp, không đọc trên worker và không đọc trên MinhComp cho lượt đang cân.
 
 Ngân sách 10 giây kể từ lúc xe đứng yên:
 
@@ -40,35 +46,24 @@ Ngân sách 10 giây kể từ lúc xe đứng yên:
 2. Ngay sau đó: ba camera chụp một lần. Ảnh ghép và ảnh gốc ra cùng lúc.
 3. YOLOv8n (640) tìm khung biển trên ảnh gốc, PaddleOCR chỉ đọc phần biển. Thời gian OCR local khoảng 3 giây.
 4. Đối chiếu sổ luồng tại máy. Sổ không lớn theo từng lượt cân.
-5. POST một JSON nhỏ: biển, biển remooc nếu có, kg, giờ, quen/lạ, thẻ, tên khách nếu có trong sổ.
+5. POST một JSON kèm ảnh ghép ≤ 1 MB: biển, biển remooc nếu có, kg, giờ, quen/lạ, thẻ, tên khách nếu có trong sổ.
 
 Chưa đọc được biển thì phiếu vẫn lên, cột biển trống, trạng thái chờ. Đó không phải xe lạ. Xe lạ là biển đã đọc và không có trong sổ: thẻ Khác, không có tên, vẫn vào sân. Lượt đầu là vào. Lượt sau cùng biển là ra và rời sân. Nút Vào/Ra cũ của phiếu cân không bị gộp thành phiên.
 
 Worker không chạy YOLO. `OCR_ENGINE=xai` vẫn tắt. Không cần `XAI_API_KEY`.
 
-Trang `/` là ba thẻ Nhập mì, Xuất bột, Khác. Trang thử cũ ở `/demo`. Phiếu ngày ở `/phieu`.
+Trang `/` là bản V5. Mục “Xe đang trong nhà máy” là ba thẻ sống Nhập mì, Xuất bột, Khác, lấy từ `GET /api/yard`. Ngoại lệ, phiên đã đóng, Camera, Thử mẫu, Sổ ngày giữ nguyên. Phiếu ngày ở `/phieu`.
 
-## Sáng mai
+## Đưa bản này lên web
 
-MinhComp, một lần:
+MinhComp, một lần, sau khi đã bật R2 trên Cloudflare:
 
-```
-npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
-npx wrangler deploy
-```
+Bấm đúp `Day-len-web.bat`. File tự kéo bản mới, tạo kho `bm-can-xe-shots` nếu chưa có, rồi deploy. Không gõ lệnh.
 
-`schema.sql` trên bảng đã có sẽ báo cột trùng. Khi đó dùng `worker/migrate-yard.sql` cho cột còn thiếu, hoặc để request đầu tự ALTER. Không bật R2. Ảnh không lên web.
+CANcomp giữ bản **0.17.1**. Không cài 0.17.2, bản đó tắt gửi ảnh.
 
-CANcomp:
+Ảnh của xe cân sau khi web đã nhận ảnh: 0.17.1 tự gửi, không cần máy lập trình.
 
-```
-pip install -r ocr/requirements.txt
-```
-
-Đặt `ocr/models/plate.pt` và `ocr/models/char.pt` cạnh app (không commit). Mở BM Auto Cân. App tự gọi `python -m ocr --serve` nếu cổng 8765 còn trống. Process phải đứng sẵn trước xe đầu tiên, nếu không lần nạp model trễ quá 10 giây và biển để trống.
-
-Mở Sổ luồng (PIN), nhập biển quen, tên khách hoặc nhà cung cấp, và thẻ. Sổ trống thì mọi biển đọc được đều là xe lạ.
+Ảnh của xe đã cân trong ngày mà web lúc đó bỏ ảnh: chép cả `Gui-lai-anh-hom-nay.bat` và `gui-lai-anh.py` sang máy cân, để BM Auto Cân đang mở, bấm đúp file bat một lần. Phần mềm tự gửi lại ảnh còn trong thư mục `shots`.
 
 `STATION_KEY` đã có trong appsettings của CANcomp. Không ghi vào git. CANcomp không chạy `wrangler`.
-
-Chưa có hai file `.pt` thì số kg và ảnh ghép vẫn lên. Biển chưa đọc được.
