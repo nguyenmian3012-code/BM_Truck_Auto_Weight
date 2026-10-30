@@ -12,25 +12,23 @@ if not "%CODE%"=="404" (
   pause
   exit /b 1
 )
-set "DB=%ProgramData%\BmCancomp\data\cancomp.db"
-if not exist "%DB%" set "DB=%LOCALAPPDATA%\BmCancomp\data\cancomp.db"
-if not exist "%DB%" (
-  echo Khong thay so phieu tren may nay. File nay chay tren may can, khong phai may lap trinh.
+set "BM_DB="
+set "PYEXE="
+where python >nul 2>&1 && set "PYEXE=python"
+if not defined PYEXE where py >nul 2>&1 && set "PYEXE=py -3"
+if not defined PYEXE (
+  echo Khong goi duoc python. Khong cai lai Python 3.10, may da co san.
+  echo Dong cua so Setup. Bam Close.
   pause
   exit /b 1
 )
-if not exist "%~dp0gui-lai-anh.py" (
-  echo Thieu file gui-lai-anh.py nam canh file nay. Hay chep ca hai file.
+%PYEXE% "%~dp0gui-lai-anh.py"
+if errorlevel 1 (
+  echo.
+  echo Chua gui duoc. Dong loi nam phia tren. Khong cai lai Python.
   pause
   exit /b 1
 )
-set "BM_DB=%DB%"
-where python >nul 2>&1 && python "%~dp0gui-lai-anh.py" && goto done
-where py >nul 2>&1 && py -3 "%~dp0gui-lai-anh.py" && goto done
-echo May can chua co Python. Cai Python 3.10, tick Add python.exe to PATH, roi bam dup lai.
-pause
-exit /b 1
-:done
 echo.
 echo Xong. Vai giay nua BM Auto Can tu gui lai anh hom nay. Khong tat phan mem.
 pause
