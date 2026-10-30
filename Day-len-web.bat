@@ -45,7 +45,8 @@ if errorlevel 1 (
 )
 echo.
 echo Xong. Mo https://canxe.redtigerhead.com/
-echo Trang giu ban V5. Ba the nam trong muc Xe dang trong nha may.
+echo Bam Ctrl+F5. Trang phai co ba cot Nhap mi, Xuat bot, Khac.
+echo Neu van thay bien 51C-337.61 va chu xe Tu Binh: do la trang mau cu, bam Ctrl+F5 lan nua.
 echo Anh toi da 3 GB. Anh qua 60 ngay thi xoa. Cai nao den truoc thi xoa truoc.
 echo.
 echo Anh da can hom nay: chep HAI file sau sang may can, de BM Auto Can dang mo, bam dup file bat.
