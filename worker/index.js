@@ -126,8 +126,7 @@ async function handleIngest(request, env, ctx) {
   let shotKey = "";
   let jpeg = null;
   const shotName = shotNameOf(body.shotName);
-  if (body.shot) {
-    if (!env.SHOTS) return json(503, { error: "chua co kho anh" });
+  if (body.shot && env.SHOTS) {
     jpeg = decodeJpeg(body.shot);
     if (!jpeg) return json(400, { error: "anh phai la jpeg toi da 1MB" });
     shotKey = "shots/" + id + ".jpg";

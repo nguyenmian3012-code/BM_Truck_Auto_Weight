@@ -10,7 +10,6 @@ Chỉ máy đã `wrangler login` (MinhComp), một lần khi đưa bản mới l
 
 ```
 npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
-npx wrangler r2 bucket create bm-can-xe-shots
 npx wrangler deploy
 ```
 
@@ -31,7 +30,7 @@ Khi route trả 200, app CANcomp tự đẩy hàng đợi. Không bật khóa pr
 
 ## OCR và sân nhà máy
 
-Ảnh ghép trong `shots/` vẫn đi kèm phiếu, tối đa 1 MB, giữ 60 ngày. Đường đó không đổi.
+Ảnh ghép nằm trên CANcomp, thư mục `shots/`, tối đa 1 MB, giữ 60 ngày. Không đẩy ảnh lên web. Web chỉ nhận JSON: biển, kg, giờ, thẻ. Kho R2 không dùng, vì tài khoản chưa bật R2 và phần này phải ở mức 0 đồng.
 
 Biển đọc trên CANcomp, không đọc trên worker và không đọc trên MinhComp cho lượt đang cân. Ba ảnh gốc (đúng độ phân giải camera) nằm trong `packs/{id}/`, máy cân tự xóa sau 7 ngày. Ảnh gốc không lên mạng.
 
@@ -55,11 +54,10 @@ MinhComp, một lần:
 
 ```
 npx wrangler d1 execute bm-can-xe --remote --file worker/schema.sql
-npx wrangler r2 bucket create bm-can-xe-shots
 npx wrangler deploy
 ```
 
-`schema.sql` trên bảng đã có sẽ báo cột trùng. Khi đó dùng `worker/migrate-yard.sql` cho cột còn thiếu, hoặc để request đầu tự ALTER. Bucket đã có thì bỏ lệnh tạo bucket.
+`schema.sql` trên bảng đã có sẽ báo cột trùng. Khi đó dùng `worker/migrate-yard.sql` cho cột còn thiếu, hoặc để request đầu tự ALTER. Không bật R2. Ảnh không lên web.
 
 CANcomp:
 

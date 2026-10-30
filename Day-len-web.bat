@@ -15,9 +15,7 @@ cd /d "%ROOT%"
 git checkout main
 git pull --ff-only
 if errorlevel 1 goto fail
-echo Dang kiem tra kho anh...
-call npx --yes wrangler r2 bucket create bm-can-xe-shots
-echo Dang day len Cloudflare...
+echo Dang day trang len web. Chi so lieu, khong tao kho anh.
 call npx --yes wrangler deploy
 if errorlevel 1 (
   echo.
