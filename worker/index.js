@@ -110,6 +110,10 @@ function scheduleOcr(ctx, env, id, jpeg) {
 const SHOT_CAP_BYTES = 3 * 1024 * 1024 * 1024;
 const SHOT_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1000;
 
+function shotStore(env) {
+  return env.SHOTS || env.bm_can_xe_shots || null;
+}
+
 let shotLedgerReady = false;
 
 async function ensureShotLedger(env) {
@@ -133,7 +137,9 @@ async function rememberShot(env, key, bytes) {
 }
 
 async function dropShot(env, key) {
-  try { await env.SHOTS.delete(key); }
+  const shots = shotStore(env);
+  if (!shots) return false;
+  try { await shots.delete(key); }
   catch { return false; }
   await env.TICKETS.prepare("DELETE FROM shots WHERE key=?").bind(key).run();
   await env.TICKETS.prepare("UPDATE tickets SET shot_key='' WHERE shot_key=?").bind(key).run();
@@ -141,7 +147,7 @@ async function dropShot(env, key) {
 }
 
 async function trimShots(env) {
-  if (!env.SHOTS || !env.TICKETS) return;
+  if (!shotStore(env) || !env.TICKETS) return;
   await ensureShotLedger(env);
   const cutoff = new Date(Date.now() - SHOT_MAX_AGE_MS).toISOString();
   const old = await env.TICKETS.prepare(
@@ -184,16 +190,17 @@ async function handleIngest(request, env, ctx) {
   let shotKey = "";
   let jpeg = null;
   const shotName = shotNameOf(body.shotName);
-  if (body.shot && env.SHOTS) {
+  const shots = shotStore(env);
+  if (body.shot && shots) {
     jpeg = decodeJpeg(body.shot);
     if (!jpeg) return json(400, { error: "anh phai la jpeg toi da 1MB" });
     shotKey = "shots/" + id + ".jpg";
     try {
-      await env.SHOTS.put(shotKey, jpeg, { httpMetadata: { contentType: "image/jpeg" } });
+      await shots.put(shotKey, jpeg, { httpMetadata: { contentType: "image/jpeg" } });
       await rememberShot(env, shotKey, jpeg.byteLength);
       scheduleTrim(ctx, env);
     } catch {
-      try { await env.SHOTS.delete(shotKey); } catch { /* phiếu kg vẫn vào */ }
+      try { await shots.delete(shotKey); } catch { /* phiếu kg vẫn vào */ }
       shotKey = "";
       jpeg = null;
     }
@@ -292,8 +299,8 @@ async function handleOcr(request, env) {
   await ensureShotColumns(env);
   let row = await loadTicket(env, id);
   if (!row) return json(404, { error: "khong co phieu" });
-  if (shouldRead(row, env) && env.SHOTS) {
-    const obj = await env.SHOTS.get(row.shot_key);
+  if (shouldRead(row, env) && shotStore(env)) {
+    const obj = await shotStore(env).get(row.shot_key);
     if (obj) {
       const jpeg = new Uint8Array(await obj.arrayBuffer());
       try { await applyOcr(env, id, jpeg); }
@@ -491,8 +498,9 @@ async function handleOcrWrite(request, env) {
 
 async function serveShot(env, id) {
   if (!/^[A-Za-z0-9-]{8,80}$/.test(id)) return json(400, { error: "id" });
-  if (!env.SHOTS) return json(503, { error: "chua co kho anh" });
-  const obj = await env.SHOTS.get("shots/" + id + ".jpg");
+  const shots = shotStore(env);
+  if (!shots) return json(503, { error: "chua co kho anh" });
+  const obj = await shots.get("shots/" + id + ".jpg");
   if (!obj) return json(404, { error: "khong co anh" });
   return new Response(obj.body, {
     headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=86400" },

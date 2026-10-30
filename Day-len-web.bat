@@ -12,12 +12,14 @@ if not exist "%ROOT%\.git" (
   if errorlevel 1 goto fail
 )
 cd /d "%ROOT%"
-git checkout main
-git pull --ff-only
+git fetch origin main
+if errorlevel 1 goto fail
+git reset --hard origin/main
 if errorlevel 1 goto fail
 echo.
 echo Dang mo kho anh. Neu kho da co, dong loi "already exists" la binh thuong.
-call npx --yes wrangler r2 bucket create bm-can-xe-shots
+set CI=true
+call npx --yes wrangler r2 bucket create bm-can-xe-shots --binding SHOTS --update-config false
 echo.
 echo Neu dong tren co "enable R2" hoac 10042: mo Cloudflare, bat R2, roi bam dup file nay lan nua.
 echo.
