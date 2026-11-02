@@ -5,7 +5,7 @@ Hệ thống chụp hình, lưu biển số và cân nặng tự động — nh�
 - Live: [canxe.redtigerhead.com](https://canxe.redtigerhead.com)
 - Worker Cloudflare: `bm-can-xe`. Git webhook không tự build — khi cần bản live, upload `public/index.html` (mill v5, logo BM_7 đã nhúng).
 - Phần mềm máy CANcomp, tên hiển thị **BM Auto Cân Desktop** (repo riêng): [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) — nghe RS232, lọc cao nguyên, SQLite, sync. Đổi ingest hoặc luật kg thì sửa **cả** repo đó. Không cài bản nháp `cancomp-agent/` trong repo này.
-- Đang chạy **02/11/2026, bản 0.18.7**: OCR tại CANcomp, một lần, ảnh tối đa 1 MB. Không đọc lại ảnh gốc bằng cùng một Paddle. Nhật ký: [docs/NHAT-KY-2026-11-02.md](./docs/NHAT-KY-2026-11-02.md).
+- Đang chạy **02/11/2026**: OCR tại CANcomp, một lần, ảnh tối đa 1 MB. Script **0.18.8** tắt oneDNN vì Paddle chết sau phiếu đầu. Nhật ký: [docs/NHAT-KY-2026-11-02.md](./docs/NHAT-KY-2026-11-02.md).
 - Bản đồ đã chốt: [docs/HE-THONG-CAN-XE-BINH-MINH.md](./docs/HE-THONG-CAN-XE-BINH-MINH.md) · cách không bỏ sót app: [docs/LIEN-KET-PHAN-MEM-CANCOMP.md](./docs/LIEN-KET-PHAN-MEM-CANCOMP.md)
 - Kiến trúc máy cân: [docs/cancomp.md](./docs/cancomp.md) — PC độc lập **CANcomp** + DTECH + sync HTTPS. Một số câu trong file này còn cửa 2 giây và ảnh xám; luật đang chạy nằm ở whitepaper và app.
 - Whitepaper: [WHITEPAPER.md](./WHITEPAPER.md) — mục tiêu còn hiệu lực, bản 09/10/2026
