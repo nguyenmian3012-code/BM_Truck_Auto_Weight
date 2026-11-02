@@ -3,6 +3,8 @@
 > **Mã phần mềm không còn nằm trong repo này.** Từ 25/09/2026: [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp).
 > Bản đồ cả hệ thống: [HE-THONG-CAN-XE-BINH-MINH.md](./HE-THONG-CAN-XE-BINH-MINH.md).
 > Khi đổi baud, lọc, hoặc `/api/ingest`: sửa repo phần mềm **và** ghi lại ở đây. Bảng: [LIEN-KET-PHAN-MEM-CANCOMP.md](./LIEN-KET-PHAN-MEM-CANCOMP.md).
+>
+> **02/11/2026, bản 0.18.7.** Đọc biển tại CANcomp, một lần, trên ảnh tối đa 1 MB. Không đọc lại ảnh gốc bằng cùng Paddle. Đoạn “OCR pha 1 chỉ đẩy ảnh” bên dưới là lối cũ, không còn chạy. Nhật ký: [NHAT-KY-2026-11-02.md](./NHAT-KY-2026-11-02.md).
 
 Quyết 15/09/2026: **không** cài agent lên máy sổ cũ. Một PC riêng (`CANcomp`) nghe dữ liệu, lọc nhiễu, lưu local, đồng bộ lên `canxe.redtigerhead.com`.
 

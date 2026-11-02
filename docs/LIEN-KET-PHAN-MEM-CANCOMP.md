@@ -16,7 +16,8 @@ Tách ngày 25/09/2026. Repo này giữ mill, whitepaper, spec phần cứng. Re
 |---|---|
 | `POST /api/ingest`, tên field `kg` / `starchPct`, header `X-Station-Key` | Có. Đối chiếu `IngestPayload` cùng ngày. |
 | Phiên, biển số, 95%, sổ ngày, loại hàng | Không. |
-| Baud, COM, DTR/RTS, khung máy bột, ε, cửa 2 giây | Có, đó là mã của họ. Repo này chỉ cập nhật `docs/cancomp.md` và `docs/hardware-spec.md`. |
+| Baud, COM, DTR/RTS, khung máy bột, ε, cửa 3 giây | Có, đó là mã của họ. Repo này chỉ cập nhật `docs/cancomp.md` và `docs/hardware-spec.md`. |
+| Cách đọc biển trên CANcomp | Có, mã ở repo phần mềm. Repo này giữ nhật ký [NHAT-KY-2026-11-02.md](./NHAT-KY-2026-11-02.md). |
 | Camera / đèn | Spec ở đây. Code chụp sẽ vào repo phần mềm khi làm (chưa có ở bản 0.1). |
 
 Worker `main` tại lúc tách (`9a1f5db`) chưa có route `/api/ingest`. Phần mềm đã POST theo hợp đồng trong `docs/cancomp.md` và xếp hàng SQLite cho đến khi có HTTP 2xx.
