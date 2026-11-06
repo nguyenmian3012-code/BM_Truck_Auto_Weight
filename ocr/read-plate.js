@@ -109,7 +109,7 @@ export async function readPlate(jpegBytes, apiKey) {
         authorization: "Bearer " + apiKey,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(22000),
+      signal: AbortSignal.timeout(55000),
     });
   } catch (e) {
     return blank("pending", String((e && e.message) || e).slice(0, 160));
