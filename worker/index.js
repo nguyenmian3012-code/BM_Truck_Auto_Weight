@@ -863,6 +863,31 @@ function num(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+
+async function handleOcrImage(request, env) {
+  const key = request.headers.get("x-station-key") || "";
+  if (!env.STATION_KEY) return json(503, { error: "STATION_KEY chua gan" });
+  if (key !== env.STATION_KEY) return json(401, { error: "sai khoa" });
+  if (!env.XAI_API_KEY) return json(503, { error: "XAI_API_KEY chua gan" });
+  const buf = await request.arrayBuffer();
+  if (!buf || buf.byteLength < 32) return json(400, { error: "no-image" });
+  const jpeg = new Uint8Array(buf);
+  let result;
+  try {
+    result = await readPlate(jpeg, env.XAI_API_KEY);
+  } catch (e) {
+    return json(200, { ok: false, reason: String((e && e.message) || e).slice(0, 160) });
+  }
+  return json(200, {
+    ok: !!(result && result.plate),
+    plate: result.plate || "",
+    trailerPlate: result.trailerPlate || "",
+    owner: result.owner || "",
+    confidence: result.confidence || 0,
+    reason: result.reason || "",
+  });
+}
+
 function json(status, obj) {
   return new Response(JSON.stringify(obj), {
     status,
@@ -916,6 +941,7 @@ export default {
     if (url.pathname === "/api/shot" && request.method === "GET") return serveShot(env, url.searchParams.get("id") || "");
     if (url.pathname === "/api/ocr" && request.method === "GET") return handleOcr(request, env);
     if (url.pathname === "/api/ocr" && request.method === "POST") return handleOcrWrite(request, env);
+    if (url.pathname === "/api/ocr-image" && request.method === "POST") return handleOcrImage(request, env);
     if (url.pathname === "/api/ocr-queue" && request.method === "GET") return handleOcrQueue(request, env);
     if (url.pathname === "/api/tickets" && request.method === "GET") return listTickets(env, url.searchParams.get("ngay"));
     if (url.pathname === "/api/yard" && request.method === "GET") return listYard(env);
