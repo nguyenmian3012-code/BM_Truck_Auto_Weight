@@ -1,25 +1,26 @@
 # Liên kết phần mềm CANcomp
 
-Người sửa mill đọc file này trước khi đổi đường cân.
+Người sửa mill đọc file này trước khi đổi đường cân. Ngày cập nhật **11/11/2026**.
 
 | | |
 |---|---|
-| Repo phần mềm (exe trên CANcomp / MinhComp) | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp |
-| File trong repo đó | `docs/LIEN-KET-REPO-CHA.md`, `docs/HE-THONG-CAN-XE-BINH-MINH.md`, `IngestClient.cs`, `Parsers.cs` |
-| Bản đồ hệ thống (bản ở repo này) | [HE-THONG-CAN-XE-BINH-MINH.md](./HE-THONG-CAN-XE-BINH-MINH.md) |
+| Phiếu kg, camera, BM-OCR | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp — bản **0.18.44** |
+| Điểm bột | https://github.com/nguyenmian3012-code/BM-ThuDiem — bản **1.2.0** |
+| Đích và việc còn lại | [WHITEPAPER.md](../WHITEPAPER.md), [TASKS.md](./TASKS.md) |
+| Bản đồ | [HE-THONG-CAN-XE-BINH-MINH.md](./HE-THONG-CAN-XE-BINH-MINH.md) |
 
-Tách ngày 25/09/2026. Repo này giữ mill, whitepaper, spec phần cứng. Repo kia giữ tai RS232.
+Ba repo. Repo này giữ mill và whitepaper. Không có đường thứ tư.
 
 ## Đừng bỏ sót
 
-| Bạn vừa sửa | Phải đụng repo phần mềm? |
+| Bạn vừa sửa | Repo nào |
 |---|---|
-| `POST /api/ingest`, tên field `kg` / `starchPct`, header `X-Station-Key` | Có. Đối chiếu `IngestPayload` cùng ngày. |
-| Phiên, biển số, 95%, sổ ngày, loại hàng | Không. |
-| Baud, COM, DTR/RTS, khung máy bột, ε, cửa 3 giây | Có, đó là mã của họ. Repo này chỉ cập nhật `docs/cancomp.md` và `docs/hardware-spec.md`. |
-| Cách đọc biển trên CANcomp | Có, mã ở repo phần mềm. Repo này giữ nhật ký [NHAT-KY-2026-11-02.md](./NHAT-KY-2026-11-02.md). |
-| Camera / đèn | Spec ở đây. Code chụp sẽ vào repo phần mềm khi làm (chưa có ở bản 0.1). |
+| `POST /api/ingest`, field `kg` hoặc `starchPct`, header `X-Station-Key` | Repo này và `IngestClient.cs` của AutoCan. ThuDiem không tự POST. |
+| Cửa 3 giây, ε 20 kg, COM5 | Repo AutoCan. Không đổi khi chưa có bảng đối sổ. |
+| Khô, ướt, bảng 228, COM4 | Chỉ repo BM-ThuDiem. |
+| Ghép biển | `ocr/branch.py` trong repo AutoCan. `decide()` là đường lùi. |
+| Màu mill, sổ ngày trên web | Repo này. Không phát hành lại exe. |
 
-Worker `main` tại lúc tách (`9a1f5db`) chưa có route `/api/ingest`. Phần mềm đã POST theo hợp đồng trong `docs/cancomp.md` và xếp hàng SQLite cho đến khi có HTTP 2xx.
+COM5 chỉ AutoCan. COM4 chỉ BM-ThuDiem. BM-OCR không ghi SQLite.
 
-Tìm ngược: trong repo phần mềm, cụm `BM_Truck_Auto_Weight`.
+Tìm ngược: cụm `BM_Truck_Auto_Weight` trong hai repo phần mềm.

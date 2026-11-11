@@ -1,16 +1,37 @@
 # Hệ thống Cân xe Bình Minh — cấu trúc đã chốt
 
-Ngày chốt bản đồ: **25/09/2026**.  
+Ngày chốt bản đồ gốc: **25/09/2026**. Cập nhật đang chạy: **11/11/2026**.  
 Nhà máy tinh bột khoai mì Bình Minh. Host mill: https://canxe.redtigerhead.com
 
-File này tồn tại ở **hai repo**. Sửa một bên thì đối chiếu bên kia trong cùng ngày. Cách đối chiếu: [LIEN-KET-REPO-CHA.md trong repo app](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/blob/main/docs/LIEN-KET-REPO-CHA.md) và [LIEN-KET-PHAN-MEM-CANCOMP.md trong repo cha](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/blob/main/docs/LIEN-KET-PHAN-MEM-CANCOMP.md).
+Đọc mục 0 trước. Phần bên dưới là quyết định tháng 9 còn hiệu lực về dây và sổ cũ. Chỗ nào mục 0 nói khác thì tin mục 0.
+
+File này tồn tại ở **hai repo**. Sửa một bên thì đối chiếu bên kia trong cùng ngày.
 
 | Bản | Chỗ |
 |---|---|
-| Hệ thống (bản này, góc nhìn mill + máy) | https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/blob/main/docs/HE-THONG-CAN-XE-BINH-MINH.md |
-| Phần mềm CANcomp (cùng nội dung) | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/blob/main/docs/HE-THONG-CAN-XE-BINH-MINH.md |
+| Hệ thống | https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/blob/main/docs/HE-THONG-CAN-XE-BINH-MINH.md |
+| Phần mềm CANcomp | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/blob/main/docs/HE-THONG-CAN-XE-BINH-MINH.md |
+| Điểm bột | https://github.com/nguyenmian3012-code/BM-ThuDiem |
 
-Nếu lạc vào một repo và không thấy số liệu: repo kia là chỗ còn lại. Không có repo thứ ba cho cầu cân.
+## 0. Đang chạy 11/11/2026
+
+```
+  Sổ cũ                         không cài phần mềm mới
+  Kingbird COM2 ── DTECH ── OUTPUT1 → sổ cũ
+                         └─ OUTPUT2 → USB-RS232 → CANcomp COM5 → BM Auto Cân 0.18.44
+  Máy bột USB-RS232 → CANcomp COM4 → BM-ThuDiem 1.2.0
+  Cam F / R / S ── LAN ── CANcomp → AutoCan chụp → BM-OCR đọc biển
+  BM-ThuDiem thả file điểm → AutoCan POST /api/ingest → canxe.redtigerhead.com
+```
+
+| Luật | |
+|---|---|
+| COM5 | Chỉ AutoCan. Kingbird. 1200 8N1. Cửa 3 giây, ε 20 kg. |
+| COM4 | Chỉ BM-ThuDiem. Gram viết ngược. Khô gần 5000 g. Ướt trung vị khoảng 300–700 g. Tra Quyết định 228. Không lấy khô trừ ướt. |
+| OCR | Trên CANcomp, một ảnh một lượt, không ghi SQLite. Không đoán chữ cái thiếu. |
+| Thanh toán | Vẫn sổ cũ, cho đến khi 30 ngày lệch dưới 1%. |
+
+Lần kiểm tra mạng 11/11: máy CANcomp thấy địa chỉ `192.168.100.20`. Camera `.101` và `.102` không trả lời ping. Đó là lỗi dây, chưa phải lỗi code chụp.
 
 ---
 
@@ -20,12 +41,13 @@ Nếu lạc vào một repo và không thấy số liệu: repo kia là chỗ c�
   Sổ cũ (máy đang vận hành)
       │  giữ nguyên, không cài phần mềm mới, không cắt cáp
       │
+  (sơ đồ tháng 9, đã bị mục 0 thay. Giữ để đối lịch sử.)
   Đầu cân Kingbird COM2 ── DTECH 1→2 ── OUTPUT1 → màn / sổ cũ
-                          └─ OUTPUT2 → USB-RS232 → CANcomp   (chỉ nghe)
-  Máy bột DB9 ────────────── USB-RS232 (PL2303) → CANcomp
-  Cam F / cam R (chưa nối vào app 0.1) ── LAN ── CANcomp
+                          └─ OUTPUT2 → USB-RS232 → CANcomp COM5
+  Máy bột DB9 ────────────── USB-RS232 → CANcomp COM4 → BM-ThuDiem
+  Cam F / R / S ── LAN ── CANcomp → BM-OCR
 
-  CANcomp   phần mềm BM AutoCan
+  CANcomp   BM Auto Cân + BM-OCR + BM-ThuDiem
       │     lọc cao nguyên · SQLite · hàng đợi
       │     HTTPS + X-Station-Key
       ▼
@@ -39,7 +61,7 @@ Nếu lạc vào một repo và không thấy số liệu: repo kia là chỗ c�
 | Lớp | Máy / chỗ | Repo sở hữu mã | Được làm | Cấm |
 |---|---|---|---|---|
 | Sổ cũ | Máy nhà cân hiện tại | Không có trong hai repo này | Giữ quy trình cũ trong tháng song song | Cài agent, cắt COM1, dùng Y-cable nối chung TX |
-| Trạm cân | **CANcomp** (thử trước trên **MinhComp**) | `BM_CANXE_SOFT_CANcomp` | Nghe RS232, lọc, SQLite, sync HTTPS. Sau này: đèn + chụp | Ghi Postgres, OCR hai nơi, MQTT, ghi byte lên đầu cân |
+| Trạm cân | **CANcomp** | `BM_CANXE_SOFT_CANcomp` và `BM-ThuDiem` | AutoCan: COM5, ảnh, SQLite xe. ThuDiem: COM4, điểm bột. OCR một lần trên CANcomp, không ghi SQLite | Ghi Postgres, hai chương trình một cổng, MQTT, ghi byte lên đầu cân |
 | Mill | canxe.redtigerhead.com | `BM_Truck_Auto_Weight` (`worker/`, `cf-site/`) | Phiên, biển, sổ ngày, nhận ingest | Đọc COM (không có cổng trên Cloudflare) |
 | Sổ pháp lý sau | `binhminh_data` | Repo cha, khi tới bước tích hợp | Nhận phiếu đã khóa từ mill | CANcomp nối thẳng |
 
@@ -51,9 +73,9 @@ Chạy Windows 10 trở lên. Ngôn ngữ: **C# .NET 8**. Lớp vẽ đang chạ
 
 Yêu cầu:
 
-1. Đọc liên tục hai cổng COM RS232.
+1. AutoCan chỉ đọc COM5. BM-ThuDiem chỉ đọc COM4. Không chương trình nào đọc cả hai.
 2. Bỏ số lúc bàn cân được vệ sinh, số lỗi, số khi cân ở 0, số người đứng (thấp, không phải xe).
-3. Chỉ lấy giá trị **cao và đứng yên**. Cân xe: cửa **3 giây**, ε 20 kg. Điểm bột: số ổn định cuối khi máy về 0. Một số cho một lượt xe hoặc một mẫu bột.
+3. Cân xe: cửa **3 giây**, ε 20 kg, một số cho một lượt. Điểm bột nằm ở BM-ThuDiem: khô gần 5000 g, ướt là trung vị cao nguyên thấp, tra Quyết định 228. Không lấy khô trừ ướt.
 4. Admin đơn giản bằng PIN. Người cân không sửa ε, không sửa cổng, không thấy `STATION_KEY`.
 5. Đẩy lên mill **đúng cấu trúc** phía dưới. Mất mạng thì giữ local rồi gửi lại.
 6. Tháng đối chiếu: mill không phải căn thanh toán cho đến khi lệch với sổ cũ **dưới 1%** trên ít nhất 30 ngày lịch (whitepaper repo cha).
@@ -77,13 +99,14 @@ Yêu cầu:
 | Việc | Điểm hàm lượng bột của củ mì. Ô điểm trên mill khóa, không gõ tay |
 | Chip đã gặp | Prolific PL2303 |
 | Khung đã chốt 29/09/2026 | `NNNNNN=` là **gram viết ngược**. `040500=` = 5040 g khô. `075000=` = 570 g ướt. `000000=` = 0 |
-| Cấu hình đã chốt vì sự cố COM5 | **1200 8N1**, DTR tắt, RTS tắt, không software flow. Không trả về 7N1 |
-| Lọc | Không khóa cao nguyên đầu. Chuỗi khô: mức ổn định **cuối** trước khi số rơi (nhân viên cho thừa rồi bớt về ~5000 g). Chuỗi ướt: mức ổn định cuối sau khi thả xuống nước. Tra Phụ lục 228 bằng cân ướt đã quy về 5000 g. Nếu chuỗi 2 vẫn là số lớn, cân ướt = khô − chuỗi 2. Hai phiếu: gram khô, rồi điểm |
+| Cổng trên CANcomp | **COM4**, chỉ BM-ThuDiem. Không mở từ AutoCan. |
+| Cấu hình | **1200 8N1**, DTR tắt, RTS tắt, không software flow. Không 7N1. |
+| Lọc đang chạy 11/11 | BM-ThuDiem 1.2.0. Khô: mẫu gần 5000 g trong 4200–5800 g. Ướt: trung vị của cao nguyên 150–1200 g, thường 300–700 g. `5000 × ướt / khô`, tra Phụ lục 228. 522 g = 22,4%. Không dùng khô − ướt. Nước rung không được làm mất phiếu. |
 
 ### Bảo mật trên máy
 
 - PIN admin mặc định `2580`, đổi khi cài máy thật.
-- `STATION_KEY` chỉ nằm trên máy (`C:\ProgramData\BmCancomp\appsettings.json`), không vào git.
+- `STATION_KEY` chỉ nằm trên máy (`C:\\ProgramData\\BmCancomp\\appsettings.json`), không vào git.
 - App chạy `asInvoker`, không xin quyền admin Windows. Ghi vào ProgramData nên lần đầu có thể cần quyền ghi thư mục đó.
 
 ### Đồng bộ
@@ -101,7 +124,7 @@ Body bột (`source = starch`): cùng các field, thay `kg` bằng `starchPct`.
 `stationId` bản thử MinhComp: `MinhComp-Draft`.  
 `stationId` CANcomp: `BinhMinh-CanXe`.
 
-SQLite: `C:\ProgramData\BmCancomp\data\cancomp.db`, bảng `events` (queued / retry / sent / fail, không xóa theo ngày) và `raw_log` (raw RS232, xóa sau 2 ngày). Lưới chính chỉ 50 phiếu mới. Phiếu cũ: nút Tìm phiếu.
+SQLite: `C:\\ProgramData\\BmCancomp\\data\\cancomp.db`, bảng `events` (queued / retry / sent / fail, không xóa theo ngày) và `raw_log` (raw RS232, xóa sau 2 ngày). Lưới chính chỉ 50 phiếu mới. Phiếu cũ: nút Tìm phiếu.
 
 **Trạng thái mill tại 25/09/2026:** hợp đồng trên đã viết trong `docs/cancomp.md` của repo cha. File `worker/index.js` trên `main` (`9a1f5db`) chưa gắn route `/api/ingest`. App xếp hàng và thử lại. Chưa có 2xx thì chưa có phiếu trên mill.
 
@@ -121,12 +144,12 @@ Theo whitepaper và mill v5 trong repo cha:
 - Xe lên bàn, cân ổn định 3 giây, rồi mới được chụp. Không chụp vì hình “thấy xe đứng”. Ảnh chưa phải việc của vòng đối sổ.
 - Phiên IN/Ra chỉ khi đã có biển tin. Không mở phiên từ kg trần.
 - Điểm bột chỉ từ RS232 (phiếu `starch` của app này), không ô nhập.
-- OCR để sau, cùng `eventId` với phiếu kg. Pending khi chưa đọc biển. Không OCR local trên CANcomp trong pha này.
+- OCR chạy trên CANcomp (BM-OCR), một ảnh một lượt, không ghi database. Chưa đủ chữ thì Nghi, không đoán. Không OCR lần hai tự động trên mill.
 - Một JPEG ghép dính `eventId` là đủ khi tới lượt ảnh. Không chặn phiếu kg vì chưa đủ ba camera. Đèn trắng, không dùng IR lúc chụp biển.
 
 ## 4. Thứ tự đưa vào vận hành
 
-1. CANcomp đang chạy bản desktop. Việc kế: 20 lượt kg và vài phiếu bột đối với sổ cũ. Lệch thì sửa ε hoặc cửa, không thêm camera.
+1. CANcomp đang chạy AutoCan 0.18.44, BM-OCR 0.18.44 và BM-ThuDiem 1.2.0. Việc kế: 20 lượt kg và một ca bột đối với sổ cũ và đèn máy. Lệch kg thì sửa ε hoặc cửa, không thêm tính năng.
 2. Worker nhận được kg và điểm trước khi bật key production.
 3. Sổ cũ vẫn là căn cho đến khi lệch dưới 1% đủ 30 ngày.
 4. Ảnh: một `eventId` lúc khóa kg, một JPEG, ACK ảnh mới cho xuống. Không đợi OCR.
@@ -147,6 +170,7 @@ Làm đủ trước khi đóng việc:
 2. Sửa mã ở repo sở hữu (bảng mục 1 và file liên kết).
 3. Nếu luật lọc hoặc hợp đồng JSON đổi: sửa **cả hai** bản `HE-THONG-CAN-XE-BINH-MINH.md` (cha và app) trong cùng commit-ngày.
 4. Nếu chỉ sửa màu mill, biển số, sổ ngày: repo cha là đủ. Không cần phát hành lại exe.
-5. Nếu chỉ sửa parser / icon / PIN: repo app là đủ. Thêm một câu vào `docs/cancomp.md` của repo cha khi phần cứng hoặc baud đổi.
+5. Nếu chỉ sửa parser / icon / PIN: repo app là đủ. Sửa điểm bột thì chỉ repo BM-ThuDiem.
+6. Nếu sửa ghép biển: `ocr/branch.py` trong repo app. Không sửa `decide()` để đoán thêm.
 
-Tìm lại cho nhanh: trong repo cha tìm cụm `BM_CANXE_SOFT_CANcomp`. Trong repo app tìm cụm `BM_Truck_Auto_Weight`.
+Tìm lại cho nhanh: `BM_CANXE_SOFT_CANcomp`, `BM-ThuDiem`, `BM_Truck_Auto_Weight`.

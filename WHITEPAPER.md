@@ -1,14 +1,20 @@
 # BM Cân Xe Tự Động — Whitepaper
 
-Phiên bản **09/10/2026**. Thay bản 12/09/2026.  
-Nhà máy tinh bột khoai mì Bình Minh.  
-Phần mềm đang chạy: [BM Auto Cân Desktop](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) **0.14.3**, máy CANcomp.  
+Phiên bản **11/11/2026**. Thay cách làm của bản 09/10/2026.  
+Nhà máy tinh bột khoai mì Bình Minh.
+
+Phần mềm đang chạy trên CANcomp:
+
+| Chương trình | Repo | Bản |
+|---|---|---|
+| BM Auto Cân Desktop | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) | **0.18.44** |
+| BM-OCR (cùng gói exe, Python) | cùng repo desktop | **0.18.44** |
+| BM-ThuDiem | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) | **1.2.0** |
+
 Mill: [canxe.redtigerhead.com](https://canxe.redtigerhead.com).  
-Bản đồ dây và máy: [docs/HE-THONG-CAN-XE-BINH-MINH.md](docs/HE-THONG-CAN-XE-BINH-MINH.md).
+Bản đồ dây: [docs/HE-THONG-CAN-XE-BINH-MINH.md](docs/HE-THONG-CAN-XE-BINH-MINH.md).
 
-Bản 12/09 viết trước khi nghe được khung tin thật. Nhiều đoạn của bản đó là **cách thử**, không phải mục tiêu. File này chỉ giữ mục tiêu, ghi cách làm đã đo và đang chạy, và bỏ cách thử không còn đúng.
-
-Khi một file khác trong repo còn nói cửa 2 giây, ảnh xám 640 px, hoặc điểm bột là một khung `%` sẵn: đó là hướng cũ. Luật số đang chạy nằm ở app 0.14.3. Cổng “đã xong cả hệ thống” vẫn là mục dưới, chưa đạt.
+Bản 09/10 còn đúng về **đích**. Nó sai về cách làm hiện tại: OCR đã nằm trên CANcomp, điểm bột đã tách sang BM-ThuDiem, AutoCan không còn mở cổng máy bột.
 
 ---
 
@@ -19,11 +25,13 @@ Bốn câu này là đích. Đổi cách làm được. Bỏ bốn câu này th�
 1. **Tự động.** Xe lên bàn thì ra một phiếu kg. Mẫu củ mì thì ra một điểm bột. Không bấm để chốt số. Không gõ kg, không gõ điểm, không gõ biển trên bàn sản xuất.
 2. **Đúng.** Số đã khóa là số của lần đứng yên, không phải số đang nhảy. Đúng nghĩa là khớp sổ cũ đang dùng để thanh toán, không phải khớp một công thức tự đặt.
 3. **Không bị người sửa phiếu.** Biển chỉ từ ảnh. Điểm chỉ từ máy bột. Phiếu đã khóa không sửa. Người cân không đụng ε, cổng, hay khóa trạm.
-4. **Ít máy, chạy nền, ít bảo trì.** Một PC nghe. Một SQLite. Một đường HTTPS. Một mill. Một cửa sổ, mở cùng Windows. Không thêm kênh sync, không OCR hai nơi, không cài lên máy sổ cũ.
+4. **Ít máy, chạy nền, ít bảo trì.** Một PC nghe. Một đường HTTPS. Một mill. Cửa sổ mở cùng Windows. Không cài lên máy sổ cũ. Không ghi byte lên đầu cân.
 
 **Cổng ra, chưa đạt:** chạy song song sổ cũ ít nhất **30 ngày lịch**, tỷ lệ phiếu lệch **dưới 1%**. Trước cổng đó, sổ cũ là căn thanh toán. Sau cổng đó, mill và `binhminh_data` mới là sổ. Sổ cũ cất.
 
 Không có barrier, không giữ xe vì thiếu ảnh hoặc thiếu biển.
+
+Ngoại lệ đang có, và phải thu lại: admin được sửa phiếu Nghi hoặc Total fail, và được bấm Đọc AI. Đó là đường vá khi OCR chưa đáng tin. Không phải đích. Đích vẫn là phiếu tự khóa, không gõ.
 
 ---
 
@@ -32,141 +40,146 @@ Không có barrier, không giữ xe vì thiếu ảnh hoặc thiếu biển.
 | Lớp | Nghĩa | Ví dụ |
 |---|---|---|
 | Mục tiêu | Còn khi cách làm đổi | Một số kg đã khóa cho một lượt xe. Biển không gõ tay. |
-| Đã chốt | Cách làm đang nằm trong app 0.14.3, đã đo trên máy thật | Cửa cân 3 giây. Gram bột viết ngược. |
-| Chưa đạt | Mục tiêu còn đó, chưa có bằng chứng vận hành | 30 ngày lệch dưới 1%. OCR biển. |
+| Đã chốt | Cách làm đang nằm trong 0.18.44 và ThuDiem 1.2.0 | Cửa cân 3 giây. COM5 chỉ Kingbird. COM4 chỉ BM-ThuDiem. |
+| Chưa đạt | Mục tiêu còn đó, chưa có bằng chứng vận hành | 30 ngày lệch dưới 1%. Biển đêm. Đối đèn máy bột. |
 
-“Đã chốt” không có nghĩa “đã đúng với sổ cũ”. Có những luật đã khóa trong mã vì đo khung tin ra như vậy, nhưng phiếu kg và điểm bột **chưa** được đối đủ với sổ cũ và đèn máy bột.
+“Đã chốt” không có nghĩa “đã đúng với sổ cũ”.
 
 ---
 
-## 3. Đã chốt
+## 3. Đã chốt — đang chạy 11/11/2026
 
-### 3.1 Máy và dây — pass kiến trúc
+### 3.1 Ba chương trình, một PC
 
-Quyết 15/09/2026 còn hiệu lực.
+CANcomp chạy cả ba. MinhComp chỉ lập trình.
 
-- Không cài phần mềm mới lên máy sổ cũ. Không cắt COM1. Không nối chung TX của hai máy.
-- CANcomp là PC riêng. Nghe nhánh OUTPUT2 của DTECH từ COM2 Kingbird. TX của CANcomp không nối lên đầu cân.
-- Máy bột cắm thẳng USB-RS232, không qua DTECH.
-- MinhComp chỉ là máy lập trình, không phải máy vận hành.
-- `stationId` trên CANcomp: `BinhMinh-CanXe`.
+| Việc | Một chỗ |
+|---|---|
+| Nghe Kingbird, lọc kg, chụp cam, SQLite phiếu xe, đẩy mill | BM Auto Cân Desktop |
+| Đọc biển trên ảnh | BM-OCR, `127.0.0.1:8765/read`, không ghi database |
+| Nghe máy bột, chấm điểm, sổ thử điểm | BM-ThuDiem |
+| Đưa điểm lên mill | BM-ThuDiem thả file, AutoCan gửi. ThuDiem không tự POST |
+| Phiên, sổ ngày trên web | Mill |
+| Sổ pháp lý sau cổng 1% | `binhminh_data`, chỉ mill ghi |
+| Căn thanh toán hôm nay | Sổ cũ |
 
-### 3.2 Cân xe — pass luật đang chạy, chưa pass đối sổ
+AutoCan **không** mở COM4. BM-ThuDiem **không** mở COM5.
 
-Đầu cân: Mettler Toledo Kingbird, fact no KTGN-T100-078, serial B231161076.
+### 3.2 Dây và cổng
+
+Quyết 15/09/2026 còn hiệu lực: không cài phần mềm mới lên máy sổ cũ, không cắt COM1 của sổ cũ, không nối chung TX của hai máy, TX của CANcomp không nối lên đầu cân.
+
+| Cổng trên CANcomp | Thiết bị | Ai được mở |
+|---|---|---|
+| COM5 | Kingbird, tap OUTPUT2 của DTECH từ COM2 đầu cân. 1200 8N1. DTR tắt, RTS tắt. Không gửi một byte. | Chỉ AutoCan |
+| COM4 | Máy bột, USB-RS232, khung `NNNNNN=` gram viết ngược. 1200 8N1. DTR tắt, RTS tắt. | Chỉ BM-ThuDiem |
+
+Cắm nhầm hai cổng vật lý đã làm mất một phiên cân. Phần mềm không tự đoán cổng.
+
+### 3.3 Cân xe
+
+Đầu cân Kingbird, fact no KTGN-T100-078, serial B231161076.
 
 | | Đã chốt |
 |---|---|
-| Nghe | Listen-only. 1200 8N1. DTR tắt, RTS tắt. Không gửi một byte. |
 | Khung | Sáu chữ số là kg. Ví dụ `.10 057340…` = 57340 kg. |
-| Cửa | **3,0 giây**. ε **20 kg**. Nâng từ 2 giây ngày 29/09/2026 vì gần sổ cũ hơn. |
+| Cửa | **3,0 giây**. ε **20 kg**. |
 | Sàn | Dưới 80 kg bỏ. Dưới 400 kg không phải đỉnh xe. Trần 120000 kg. |
 | Một lượt | Cửa yên đầu tiên. Trung bình các mẫu trong cửa, rồi làm tròn kg. Không phát phiếu thứ hai cho đến khi xe rời bàn. |
-| Số lưu | Kg trên phiếu là trung bình cửa đó. Cột raw là khung gây khóa, không phải trung bình. Màn live vẫn chạy tiếp sau khi khóa. |
 
-Ba số có thể lệch nhau trong lúc xe còn trên bàn: số đang hiện, số đã khóa, và khung raw. Đó không phải lỗi hiển thị. Chưa đủ phiếu đối chiếu thì **không** đổi công thức này.
+Chưa đủ phiếu đối chiếu thì không đổi công thức này.
 
-### 3.3 Điểm bột — pass luật đang chạy, chưa pass đối đèn
+### 3.4 Điểm bột
 
-Máy bột không gửi sẵn một số phần trăm.
+Máy bột không gửi sẵn phần trăm. BM-ThuDiem 1.2.0:
 
-| | Đã chốt 29/09/2026, luật cuối từ 30/09 |
+| | Đã chốt |
 |---|---|
-| Cổng | 1200 8N1. DTR tắt, RTS tắt. Không 7N1, không software flow. |
-| Khung | `NNNNNN=` là gram **viết ngược**. `040500=` = 5040 g. `075000=` = 570 g. `000000=` = 0. |
-| Khô | Không lấy mức ổn định đầu. Lấy mức ổn định **cuối** trước khi số rơi. Mẫu hợp lệ khoảng 5000 g (cửa đang dùng 4000–6500 g). Nhân viên có thể cho thừa rồi bớt, hoặc cho thiếu rồi thêm. |
-| Ướt | Mức ổn định **cuối** sau khi nhúng. |
-| Tra bảng | Quy về 5000 g rồi tra Phụ lục Quyết định 228. Nếu chuỗi 2 vẫn là số lớn, cân ướt = khô − chuỗi 2. |
-| Hai dòng | Gram khô chỉ ở máy (`source` kho, không đẩy). Điểm bột là phiếu `starch`. |
+| Khô | Mẫu gần **5000 g** nhất trong khoảng 4200–5800 g. 5004 được chọn hơn 5008. |
+| Ướt | Cao nguyên thấp sau khi nhúng, thường **300–700 g**. Phụ lục của mẫu đúng 5 kg là **280 g = 10,0%** đến **670 g = 30,0%**. Chương trình nhận 150–1200 g và lấy trung vị. |
+| Công thức | `ướt đối chiếu = 5000 × ướt / khô`, rồi tra Phụ lục 1 của Quyết định 228/1999. 522 g là 22,4%, không phải 24,4%. |
+| Cấm | Không tính điểm bằng khô trừ ướt. Không hủy phiếu chỉ vì nước rung quá 12 g. |
+| Đóng phiên | Cân dưới 100 g liên tục 1 giây. Có cả khô và ướt thì ghi. Chưa có ướt thì không ghi. |
+| Sổ | `thudiem.db`, tách khỏi `cancomp.db`. Trần 500 MB, quá thì xóa phiếu cũ. Không lưu từng khung COM. |
 
-Bột không chặn phiếu kg.
+Bột không chặn phiếu kg. Chưa đối đủ với đèn máy bột thì chưa gọi là đúng.
 
-### 3.4 App trên CANcomp — pass phần mềm nền
+### 3.5 Ảnh và biển
 
-BM Auto Cân Desktop, C# / .NET 8, WinForms. Không chuyển WPF trước khi đủ đối soát kg.
+Khi kg khóa, AutoCan chụp ba camera Dahua (F, R, S), ghép một JPEG, rồi đưa **từng ảnh một** cho BM-OCR. Ảnh sau nằm trong hàng đợi đến khi ảnh trước trả ok, nghi hoặc Total fail. Kg không chờ biển.
 
-- Một process. Mở lần hai thì đưa cửa sổ cũ lên.
-- Mở cùng đăng nhập Windows.
-- Đóng hoặc dừng nghe thì hỏi PIN. Người cân không vào ε, cổng, khóa trạm.
-- SQLite ưu tiên `C:\ProgramData\BmCancomp\data\cancomp.db`. Phiếu không xóa theo ngày. Raw RS232 chỉ giữ 2 ngày.
-- Lưới chính là 50 phiếu mới. Phiếu cũ: nút Tìm phiếu, xuất CSV.
-- Mất mạng vẫn giữ phiếu. Hàng đợi kg và điểm nằm local cho đến khi mill trả 2xx.
-- Khóa trạm để trống. Chưa đẩy production.
+BM-OCR: YOLOv8 khoanh, PaddleOCR đọc, luật cũ `decide()` vẫn chạy trước. Nhánh `ocr/branch.py` chỉ sửa khi chữ trên ảnh khớp một biển đủ dạng.
 
-### 3.5 Ảnh — pass mã local, chưa pass vận hành
+| Được | Không được |
+|---|---|
+| Ghép mảnh của cùng một biển (`70H` + `071.93`) | Bịa chữ cái khi Paddle mất chữ (`510` + `319.46` vẫn Nghi) |
+| Đưa `L7OR` + `010.88` thành remooc `70R-010.88`, phiếu Nghi | Biến chữ thừa ở đầu thành mã tỉnh `17OR` rồi gọi OK |
+| Để Nghi khi cùng lúc có `70` và `20` | Đổi 7 thành 2 |
+| Tắt nhánh bằng `BM_PLATE_BRANCH=0` | Sửa `decide()` để “đoán thêm” |
 
-Trong 0.14 đến 0.14.3, app **có** đường chụp. Trong cấu hình gửi kèm repo, camera đang **tắt**.
+Log có `[goc]`, `[nhanh]` hoặc `[tat]`.
 
-Khi bật, lúc kg vừa khóa:
+Đọc AI (Gemini, nút tay, tối đa 5 ảnh Nghi hoặc Total fail, độ chắc từ 70%) không thay BM-OCR và không chạy nền.
 
-- Ba camera Dahua, làn F / R / S, CGI, đăng nhập Digest.
-- Đèn trắng một mức cố định trong lúc chụp. Tắt hồng ngoại. Giữ màu. Không đoán trời tối để quyết định đèn.
-- Một JPEG: CAN_F và CAN_R hàng trên, CAN_S hàng dưới rộng bằng hai ảnh trên. Cắt viền đen. Không lưu ba file gốc làm hồ sơ.
-- Tên file `thu-yyyyMMdd-HHmmss-Vao` hoặc `Ra`. Phiếu vẫn giữ mã riêng.
-- Chữ Vào/Ra trên phiếu và trên tên file là **lần lượt xen kẽ**, không phải xe vào hay xe ra thật.
-- Ảnh không chặn phiếu kg. Không OCR trên CANcomp. Không đẩy ảnh lên mill.
+Admin sửa phiếu Nghi bằng PIN là đường tạm. Phiếu OK không mở để gõ biển.
+
+### 3.6 App
+
+- WinForms, .NET 8. Không chuyển WPF khi chưa đủ 20 lượt kg khớp sổ.
+- Một process AutoCan. Đóng cửa sổ hỏi PIN.
+- SQLite phiếu xe ưu tiên `C:\ProgramData\BmCancomp\data\cancomp.db`. Xóa phiếu theo ngày thì xóa cả ảnh của ngày đó, có PIN.
+- Mất mạng vẫn giữ phiếu. CANcomp không ghi `binhminh_data`.
+- Không commit `STATION_KEY`.
 
 ---
 
-## 4. Hướng đầu đã điều chỉnh
+## 4. Đã xử lý — đừng làm lại
 
-Giữ mục tiêu ở cột phải. Bỏ cách làm ở cột trái.
-
-| Hướng 12/09 | Điều chỉnh | Mục tiêu vẫn giữ |
-|---|---|---|
-| Cửa ổn định 2,0 giây, ε 20 kg là số khởi điểm | Cửa **3,0 giây** từ 29/09. ε 20 kg giữ. | Một số cho một lượt, chỉ khi đã đứng yên. |
-| Dùng bit STABLE của đầu cân nếu có | Kingbird đang spew kg. App tự tính cửa. Không điều khiển đầu cân. | Nguồn kích là cân, không phải hình. |
-| Máy bột gửi sẵn `starchPct` | Khung thật là gram viết ngược, rồi bảng 228, lấy mức cuối mỗi chuỗi | Điểm chỉ từ máy, không ô nhập. |
-| Quét baud từ 9600 8N1 | Cả hai cổng chốt **1200 8N1**. Bột phải tắt DTR/RTS. | Nghe đúng khung, không bịa protocol. |
-| Ảnh xám, cạnh ~640 px, OCR ngay sau 2 giây | Một JPEG màu ghép ba camera. OCR để sau, trên mill, cùng mã phiếu. | Biển sau này chỉ từ ảnh. Ảnh gắn với phiếu kg đã khóa. |
-| Cam thứ ba chỉ khi hai biển lệch | Cam sườn nằm trong ảnh ghép ngay từ đầu. Nhánh “pending vì lệch biển” vẫn chưa làm. | Không mở phiên khi biển chưa đáng tin. |
-| Mock-up xe đồ chơi là cổng bắt buộc trước thiết bị thật | Đường đang chạy là nghe máy thật trên CANcomp. Thư mục `cancomp-agent/` và `src/lib/hw/` là nháp, không cài. | Cùng một phiếu cho vận hành. Không thêm nhánh “nếu demo thì…”. |
-| Cột vào/ra trên app là phiên IN/OUT | App chỉ đếm xen kẽ để khỏi trống cột. Phiên thật chỉ mở khi đã có biển. | Không mở phiên từ kg trần. |
-| Chụp vì thấy xe đứng trong hình | Cấm. Chỉ chụp sau khi kg đã khóa. | Kg là số liệu của phiếu. |
+| Việc | Cách đang giữ |
+|---|---|
+| BM-OCR kẹt `attempt to write a readonly database`, hai xe trong một phút thì pending mãi | OCR chỉ đọc ảnh. Desktop là chỗ duy nhất ghi `cancomp.db`. Một ảnh một lượt. |
+| Cắm và lập trình nhầm COM4 với COM5, mất một phiên cân xe | COM5 chỉ AutoCan. COM4 chỉ BM-ThuDiem. |
+| Thử điểm không ra phiếu vì nước rung quá 12 g | 1.2.0 lấy trung vị cao nguyên thấp rồi mới cần cân về 0. |
+| Biển giả từ chữ thừa (`17OR-010.88`) và mảnh của cùng một biển bị gọi là hai biển | Nhánh riêng. Luật cũ còn nguyên để tắt được. |
+| File thử điểm bị từ chối quyền ở ProgramData | Thả phiếu qua LocalAppData cho AutoCan gửi. |
+| Phiên có kg mà không có ảnh | Lần 11/11, ping camera `192.168.100.101` và `.102` trả Destination host unreachable từ máy `.20`. Sửa dây và hub trước khi sửa code chụp. |
 
 ---
 
 ## 5. Chưa đạt
 
-Những dòng này còn là mục tiêu. Không đánh dấu xong.
+Không đánh dấu xong.
 
-- [ ] Khoảng 20 lượt kg: mặt Kingbird, số đã khóa trong app, và sổ cũ là cùng một xe. Lệch thì sửa cửa hoặc ε, không thêm tính năng.
-- [ ] Vài mẫu bột đủ chu kỳ khô rồi ướt, đối với đèn điểm trên máy bột.
-- [ ] Worker có `POST /api/ingest`, từ chối request không `X-Station-Key`, đọc đúng `kg` hoặc `starchPct`. CANcomp không ghi `binhminh_data`.
-- [ ] Khóa trạm production chỉ bật sau khi bảng 20 lượt sạch. Xóa phiếu thử bằng PIN trước lần đẩy thật, để hàng cũ không bị đẩy nhầm.
-- [ ] OCR biển trên mill, khớp trước/sau từ 95% thì điền và khóa. Dưới 95% thì pending. Không ô gõ biển.
-- [ ] Phiên vào/ra chỉ khi biển đáng tin.
-- [ ] Ảnh một JPEG đi cùng mã phiếu lên mill. Kg không chờ ảnh.
-- [ ] Ít nhất 30 ngày lịch lệch dưới 1% với sổ cũ. Mẫu phải có ngày củ mì và ngày hàng khác nếu nhà máy cân những hàng đó.
-- [ ] Sau cổng 1%, mill và `binhminh_data` là sổ. Sổ cũ cất. Ô biển và ô điểm vẫn không gõ tay.
+- [ ] Khoảng 20 lượt kg: mặt Kingbird, số đã khóa, sổ cũ, cùng một xe. Lệch thì sửa cửa hoặc ε, không thêm tính năng.
+- [ ] Vài mẫu bột trên 1.2.0 đối với đèn máy bột. Bốn nhịp 11/11 bị rơi là bản cũ, chưa phải bằng chứng bản mới.
+- [ ] Biển ban đêm và biển mất một chữ vẫn ra đúng mà không đoán. Nhánh 0.18.44 cố ý để Nghi những ca đó.
+- [ ] Camera trả lời ping ổn định rồi mới xét lại code chụp.
+- [ ] Đếm phiếu “Đã sửa” và “Read AI”. Nếu đường vá đông hơn đường tự động thì OCR chưa đạt mục 3.
+- [ ] Ít nhất 30 ngày lịch lệch dưới 1% với sổ cũ, cả ngày củ mì và ngày hàng khác.
+- [ ] Sau cổng đó, mill và `binhminh_data` là sổ. Sổ cũ cất. Hết ô gõ biển.
 
 ---
 
 ## 6. Cố ý không làm
 
 - Màn phụ tài xế, tablet, barrier, RFID.
-- Viết lại PostgreSQL.
+- Viết lại PostgreSQL từ app.
 - Cài bất cứ thứ gì lên máy sổ cũ.
-- MQTT song song với HTTPS.
-- WPF, trang web thay cho app COM, OCR ngay trên CANcomp.
+- MQTT song song HTTPS.
+- WPF, hoặc thay app COM bằng trang web.
 - Giữ xe vì chưa có ảnh hoặc chưa đọc được biển.
 - Người cân sửa ε, cổng, hoặc khóa trạm.
+- Đoán biển khi thiếu chữ cái.
+- Để AutoCan và BM-ThuDiem cùng mở một cổng COM.
+- Để BM-OCR ghi SQLite.
 
 ---
 
-## 7. Hệ thống mỏng
+## 7. Sửa ở đâu
 
-Đúng hướng bền khi mỗi việc chỉ có một chỗ:
+Sửa luật kg thì sửa AutoCan và ghi lại whitepaper trong ngày.  
+Sửa chấm điểm thì chỉ sửa repo BM-ThuDiem.  
+Sửa ghép biển thì sửa `ocr/branch.py`, không sửa `decide()` trừ khi luật cũ đang sai một ca đã có ảnh chứng.  
+Sửa màu mill thì không phát hành lại exe.
 
-| Việc | Một chỗ |
-|---|---|
-| Nghe COM, lọc, lưu, chụp local | BM Auto Cân Desktop trên CANcomp |
-| Phiên, biển, sổ ngày | Mill trên canxe |
-| Sổ pháp lý sau cổng 1% | `binhminh_data`, chỉ mill ghi |
-| Căn thanh toán hôm nay | Sổ cũ |
-
-Sửa luật kg hoặc điểm bột thì sửa app và ghi lại bản đồ hệ thống trong cùng ngày. Sửa màu mill thì không phát hành lại exe.
-
----
-
-*Hết whitepaper 09/10/2026. Bản 12/09 không còn là hướng triển khai.*
+*Hết whitepaper 11/11/2026. Đích vẫn là bốn câu ở mục 1.*

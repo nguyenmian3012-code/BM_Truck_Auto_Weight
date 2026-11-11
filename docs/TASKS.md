@@ -1,52 +1,44 @@
-# Việc tiếp theo — theo whitepaper 09/10/2026
+# Việc tiếp theo — theo whitepaper 11/11/2026
 
-Căn cứ: [WHITEPAPER.md](../WHITEPAPER.md) mục 5 “Chưa đạt”. File này thay danh sách 10 việc tháng 9 (cửa 2 giây, mock xe đồ chơi, máy bột gửi sẵn `%`) — đó là hướng cũ.
+Căn cứ: [WHITEPAPER.md](../WHITEPAPER.md) mục 1 và mục 5.  
+Issue [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) là hàng tháng 9. Không làm theo.
 
-Issue cũ [#2](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/2)–[#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) viết theo bản 12/09. Đọc để tra lịch sử, không làm theo.
+## Đang chạy
 
-Hướng camera đồ chơi, xe đồ chơi, mock cam, mock cân **đã bỏ hẳn** (14/10/2026). Không làm lại.
+| Chương trình | Bản | Việc |
+|---|---|---|
+| BM Auto Cân Desktop | 0.18.44 | COM5, phiếu kg, camera, đẩy mill |
+| BM-OCR | 0.18.44 | Đọc biển tại máy, không ghi database |
+| BM-ThuDiem | 1.2.0 | COM4, điểm bột, sổ riêng |
 
-Luật số đang chạy nằm ở app BM Auto Cân Desktop trên CANcomp. Chưa đủ phiếu đối chiếu thì **không** đổi công thức kg hay bột.
+## Đã xong trong mã — chưa phải cổng 1%
 
-## Trạng thái 14/10/2026
+Những dòng này đã có trong bản đang phát hành. Không làm lại. Cũng không gọi là đã đối sổ.
 
-- App desktop: **v0.15.1** (commit `66772bb`, 12/10) — mỗi lần cân là một phiếu đơn; phiên vào/ra thuộc trang canxe.
-- Ingest: Worker `POST /api/ingest` **đã deploy**, chưa chạy thật vì **chưa lắp cam thật** tại cầu cân. Xem [INGEST.md](./INGEST.md).
+| # | Việc |
+|---|---|
+| A | Tách điểm bột sang repo [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem). AutoCan không mở COM4. |
+| B | OCR một ảnh một lượt, chỉ `/read`. Hết vòng `readonly database`. |
+| C | Nhánh đọc biển riêng. Tắt bằng `BM_PLATE_BRANCH=0`. Không đoán chữ cái bị thiếu. |
+| D | ThuDiem 1.2.0 không hủy phiếu chỉ vì nước rung. Cột giờ, vạch ngày, biểu đồ 10 phiên, nút Clear, trần db 500 MB. |
+| E | Đọc AI và sửa tay chỉ là đường vá cho phiếu Nghi hoặc Total fail. |
 
-## Ưu tiên 1 — tối ưu app desktop
+## Việc kế — cần bằng chứng trên máy, không cần thêm tính năng
 
 | # | Việc | Xong khi |
 |---|---|---|
-| 1 | Tối ưu BM Auto Cân Desktop, mốc gốc v0.15.1 | Bản mới chạy trên CANcomp, luật kg và bột không đổi |
+| 1 | Chạy ThuDiem 1.2.0 một ca thật | Mỗi nhịp trên biểu đồ có khô quanh 5000 g và ướt khoảng 300–700 g thì có một dòng, có giờ, khớp đèn máy bột |
+| 2 | 20 lượt xe | Mặt Kingbird, số đã khóa, sổ cũ, cùng một xe. Lệch thì sửa cửa 3 giây hoặc ε 20 kg, không thêm màn hình |
+| 3 | Camera | `ping 192.168.100.101` và `.102` phải có reply từ chính camera, không phải “Destination host unreachable”. Rồi mới chụp thử |
+| 4 | Biển | Ca đêm và ca mất chữ vẫn để Nghi nếu ảnh không đủ chữ. Chỉ siết nhánh khi có ảnh chứng minh luật cũ hoặc nhánh mới ghép sai |
+| 5 | Đếm đường vá | Trong một tuần, số phiếu OK tự động nhiều hơn số phiếu Đã sửa và Read AI cộng lại |
 
-## Ưu tiên 2 — lắp cam thật, chạy ingest thật
+## Sau khi 1–5 có số
 
 | # | Việc | Xong khi |
 |---|---|---|
-| 2 | Gắn cam tại cầu cân, có ảnh xe thật | Ảnh xe thật về đúng phiếu |
-| 3 | Chạy `POST /api/ingest` thật: từ chối request không `X-Station-Key`, đọc đúng `kg` hoặc `starchPct` | Phiếu thật lên mill. CANcomp không ghi `binhminh_data` |
+| 6 | Khóa trạm production | Sau bảng 20 lượt sạch. Xóa phiếu thử bằng PIN trước lần đẩy thật |
+| 7 | 30 ngày lịch lệch dưới 1% với sổ cũ | Có ngày củ mì và ngày hàng khác |
+| 8 | Mill và `binhminh_data` thành sổ | Sổ cũ cất. Hết ô gõ biển trên bàn sản xuất |
 
-## Sau đó — các dòng “Chưa đạt” còn lại của whitepaper
-
-| # | Việc | Ghi chú |
-|---|---|---|
-| 4 | Khoảng **20 lượt xe thật**: mặt Kingbird, số đã khóa trong app, sổ cũ — cùng một xe | Lệch thì sửa cửa hoặc ε, không thêm tính năng |
-| 5 | **Vài mẫu bột** đủ chu kỳ khô rồi ướt, đối điểm trong app với đèn máy bột | Bột không chặn phiếu kg |
-| 6 | Bật khóa trạm production | Chỉ sau khi bảng 20 lượt sạch. Xóa phiếu thử bằng PIN trước lần đẩy thật |
-| 7 | OCR biển trên mill | Khớp trước/sau từ 95% thì điền và khóa; dưới 95% thì pending. Không ô gõ biển. Không OCR trên CANcomp |
-| 8 | Một JPEG đi cùng mã phiếu lên mill | Kg không chờ ảnh |
-| 9 | Song song sổ cũ ít nhất **30 ngày lịch**, lệch **dưới 1%** | Có ngày củ mì và ngày hàng khác nếu nhà máy cân những hàng đó |
-| 10 | Sau cổng 1%: mill và `binhminh_data` là sổ, sổ cũ cất | Ô biển và ô điểm vẫn không gõ tay |
-
-Ngày 15/10: **#1**. Không đánh dấu dòng nào là xong khi chưa có bằng chứng vận hành.
-
-## Việc bổ sung (14/10) — cụ thể hóa, không thay thứ tự ưu tiên
-
-| # | Việc | Xong khi | Liên quan |
-|---|---|---|---|
-| 11 | Tiếp tục tối ưu UX desktop từ v0.15.1: giữ hướng CSV không khóa cửa sổ (0.14.6) và lưu thẳng thư mục dữ liệu (0.14.8); không đụng luật kg/bột | Bản mới trên CANcomp, xuất CSV không treo dialog, luật số không đổi | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
-| 12 | Thêm CI chạy test cho repo mill (hiện chỉ có `.github/workflows/deploy.yml`, chưa có job test) | Push/PR chạy được test tự động, xanh trên `main` | — |
-| 13 | Checklist sẵn sàng lắp cam thật tại cầu cân (theo [CHECKPOINT-2026-10-09.md](./CHECKPOINT-2026-10-09.md): ba cam F/R/S, chế độ nghỉ đã khóa, Digest Dahua) — kiểm trước khi gắn | Checklist đã đánh ✓; chụp thử ra JPEG nét đủ đọc biển ban ngày | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
-| 14 | Giám sát ingest: theo dõi 401/503/`STATION_KEY chua gan`, hàng đợi CANcomp, cảnh báo khi không có POST thành công trong ca | Có cách xem lỗi và biết khi ingest im lặng; không lộ khóa | [#12](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/12) |
-| 15 | Sao lưu định kỳ D1 `bm-can-xe` (xem [INGEST.md](./INGEST.md)) | Có bản dump/export khôi phục được, ghi rõ chỗ cất | — |
-| 16 | Đồng bộ WHITEPAPER với app đang chạy: whitepaper còn ghi **0.14.3**, CANcomp đã **v0.15.1** (`66772bb`) — cập nhật số phiên bản và mô tả phiếu đơn; không đổi mục “Chưa đạt” khi chưa có bằng chứng | WHITEPAPER nêu đúng bản app trên CANcomp | [#4](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/4), [#11](https://github.com/nguyenmian3012-code/BM_Truck_Auto_Weight/issues/11) |
+Không đánh dấu dòng 1–8 khi chưa có phiếu đối chiếu.
