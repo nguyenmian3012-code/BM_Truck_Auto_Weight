@@ -4,13 +4,13 @@ Hệ thống cân xe và điểm bột tự động — nhà máy Bình Minh (ti
 
 Đích, không đổi: xe lên bàn thì ra một phiếu kg, mẫu củ mì thì ra một điểm bột, số đó phải khớp sổ cũ, biển từ ảnh, điểm từ máy, người cân không sửa phiếu đã khóa. Cổng ra là 30 ngày lệch dưới 1%. Viết đủ ở [WHITEPAPER.md](./WHITEPAPER.md).
 
-Đang chạy **11/11/2026** trên CANcomp, ba chương trình:
+Đang chạy **19/11/2026** trên CANcomp. Mốc AutoCan và BM-OCR là **0.18.51**. Lỗi nặng thì về bản đó, hoặc về **0.18.50** nếu 0.18.51 không mở được.
 
 | Chương trình | Bản | Repo |
 |---|---|---|
-| BM Auto Cân Desktop | 0.18.44 | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) |
-| BM-OCR | 0.18.44, cùng gói desktop | cùng repo |
-| BM-ThuDiem | 1.2.0 | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) |
+| BM Auto Cân Desktop | 0.18.51 | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) |
+| BM-OCR | 0.18.51, cùng gói desktop | cùng repo |
+| BM-ThuDiem | cửa sổ máy 19/11 ghi 1.5.1 | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) |
 
 - Live: [canxe.redtigerhead.com](https://canxe.redtigerhead.com)
 - Bản đồ: [docs/HE-THONG-CAN-XE-BINH-MINH.md](./docs/HE-THONG-CAN-XE-BINH-MINH.md)
@@ -37,7 +37,7 @@ COM5 và COM4 không trộn. Hai chương trình không mở cùng một cổng.
 
 Nguồn kích là cân đã khóa, không phải camera tự thấy xe dừng. Cửa cân xe là **3 giây**, ε 20 kg. Điểm bột lấy khô gần 5000 g và ướt khoảng 300–700 g, tra Quyết định 228, không lấy khô trừ ướt.
 
-1. Đối sổ cũ: 20 lượt kg và một ca bột trên ThuDiem 1.2.0. Khóa trạm production chưa phải cổng ra.
+1. Đối sổ cũ: 20 lượt kg và một ca bột trên BM-ThuDiem đang chạy. Khóa trạm production chưa phải cổng ra.
 2. Song song sổ cũ ≥ 30 ngày. Lệch dưới 1% thì mill mới là căn thanh toán.
 3. Ảnh không chặn phiếu kg. Biển đọc trên CANcomp. Chưa đủ chữ thì để Nghi, không đoán.
 

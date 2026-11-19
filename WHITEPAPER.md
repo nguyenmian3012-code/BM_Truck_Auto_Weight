@@ -1,15 +1,15 @@
 # BM Cân Xe Tự Động — Whitepaper
 
-Phiên bản **11/11/2026**. Thay cách làm của bản 09/10/2026.  
+Phiên bản **19/11/2026**. Thay cách làm của bản 09/10/2026.  
 Nhà máy tinh bột khoai mì Bình Minh.
 
-Phần mềm đang chạy trên CANcomp:
+Phần mềm đang chạy trên CANcomp. **0.18.51 là mốc.** Bản sau mà lỗi nặng thì quay về bản này. Nếu chính 0.18.51 không mở được thì về **0.18.50**. Không về 0.18.10.
 
 | Chương trình | Repo | Bản |
 |---|---|---|
-| BM Auto Cân Desktop | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) | **0.18.44** |
-| BM-OCR (cùng gói exe, Python) | cùng repo desktop | **0.18.44** |
-| BM-ThuDiem | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) | **1.2.0** |
+| BM Auto Cân Desktop | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) | **0.18.51** |
+| BM-OCR (cùng gói exe, Python) | cùng repo desktop | **0.18.51** |
+| BM-ThuDiem | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) | cửa sổ trên máy 19/11 ghi **1.5.1** |
 
 Mill: [canxe.redtigerhead.com](https://canxe.redtigerhead.com).  
 Bản đồ dây: [docs/HE-THONG-CAN-XE-BINH-MINH.md](docs/HE-THONG-CAN-XE-BINH-MINH.md).
@@ -40,14 +40,14 @@ Ngoại lệ đang có, và phải thu lại: admin được sửa phiếu Nghi 
 | Lớp | Nghĩa | Ví dụ |
 |---|---|---|
 | Mục tiêu | Còn khi cách làm đổi | Một số kg đã khóa cho một lượt xe. Biển không gõ tay. |
-| Đã chốt | Cách làm đang nằm trong 0.18.44 và ThuDiem 1.2.0 | Cửa cân 3 giây. COM5 chỉ Kingbird. COM4 chỉ BM-ThuDiem. |
+| Đã chốt | Cách làm đang nằm trong AutoCan 0.18.51 | Cửa cân 3 giây. COM5 chỉ Kingbird. COM4 chỉ BM-ThuDiem. |
 | Chưa đạt | Mục tiêu còn đó, chưa có bằng chứng vận hành | 30 ngày lệch dưới 1%. Biển đêm. Đối đèn máy bột. |
 
 “Đã chốt” không có nghĩa “đã đúng với sổ cũ”.
 
 ---
 
-## 3. Đã chốt — đang chạy 11/11/2026
+## 3. Đã chốt — đang chạy 19/11/2026, mốc 0.18.51
 
 ### 3.1 Ba chương trình, một PC
 
@@ -91,7 +91,7 @@ Chưa đủ phiếu đối chiếu thì không đổi công thức này.
 
 ### 3.4 Điểm bột
 
-Máy bột không gửi sẵn phần trăm. BM-ThuDiem 1.2.0:
+Máy bột không gửi sẵn phần trăm. Luật dưới đây là luật đã chốt, nằm trong BM-ThuDiem, không nằm trong zip AutoCan:
 
 | | Đã chốt |
 |---|---|
@@ -119,14 +119,25 @@ BM-OCR: YOLOv8 khoanh, PaddleOCR đọc, luật cũ `decide()` vẫn chạy trư
 
 Log có `[goc]`, `[nhanh]` hoặc `[tat]`.
 
-Đọc AI (Gemini, nút tay, tối đa 5 ảnh Nghi hoặc Total fail, độ chắc từ 70%) không thay BM-OCR và không chạy nền.
+Cùng một remooc trong ngày, hai biển lệch đúng một ký tự thì hạ phiếu xuống Nghi. Không để OK.
+
+Đoán 85% không bịa một chữ. Chỉ khi remooc hoặc mảnh OCR khớp một biển đã có trong sổ thì ghi biển đó và trạng thái đúng chữ `Đoán 85%`.
+
+Đọc AI tay: phiếu Nghi hoặc Total fail, tối đa 5 ảnh một lần, 30 ảnh một ngày, chỉ ghi khi đúng mẫu biển và độ chắc từ 70%. Phiếu OK không gửi ở mốc này.
+
+Đọc AI tự động: chỉ khi ô tick trong Admin đang bật và tỉ lệ thành công của ngày dưới 95%. Một phiếu một lần, chỉ phiếu Nghi và Total fail của ngày đó. Xong phiếu này mới sang phiếu sau.
+
+Python đọc biển ở mốc này: một luồng, trả RAM sau mỗi phiếu. Luật ghép không đổi. Lần đọc đầu vẫn phải tải YOLO và Paddle.
 
 Admin sửa phiếu Nghi bằng PIN là đường tạm. Phiếu OK không mở để gõ biển.
 
 ### 3.6 App
 
 - WinForms, .NET 8. Không chuyển WPF khi chưa đủ 20 lượt kg khớp sổ.
-- Một process AutoCan. Đóng cửa sổ hỏi PIN.
+- Một process AutoCan, một process BM-OCR (Python), một process BM-ThuDiem. Chưa gộp một cửa sổ.
+- Đóng cửa sổ AutoCan thì hỏi PIN.
+- Cột Hướng: trong một ngày, lần gặp đầu của một biển là Vào, lần sau là Ra, rồi lại Vào. Không có biển thì dùng remooc.
+- Dòng cắt ngày nằm giữa các phiếu, không lấy số thứ tự. Câu trên dòng đó còn bị cắt ngắn. Chưa sửa ở mốc này.
 - SQLite phiếu xe ưu tiên `C:\ProgramData\BmCancomp\data\cancomp.db`. Xóa phiếu theo ngày thì xóa cả ảnh của ngày đó, có PIN.
 - Mất mạng vẫn giữ phiếu. CANcomp không ghi `binhminh_data`.
 - Không commit `STATION_KEY`.
@@ -139,10 +150,12 @@ Admin sửa phiếu Nghi bằng PIN là đường tạm. Phiếu OK không mở 
 |---|---|
 | BM-OCR kẹt `attempt to write a readonly database`, hai xe trong một phút thì pending mãi | OCR chỉ đọc ảnh. Desktop là chỗ duy nhất ghi `cancomp.db`. Một ảnh một lượt. |
 | Cắm và lập trình nhầm COM4 với COM5, mất một phiên cân xe | COM5 chỉ AutoCan. COM4 chỉ BM-ThuDiem. |
-| Thử điểm không ra phiếu vì nước rung quá 12 g | 1.2.0 lấy trung vị cao nguyên thấp rồi mới cần cân về 0. |
+| Thử điểm không ra phiếu vì nước rung quá 12 g | Luật mục 3.4 lấy trung vị cao nguyên thấp rồi mới cần cân về 0. |
 | Biển giả từ chữ thừa (`17OR-010.88`) và mảnh của cùng một biển bị gọi là hai biển | Nhánh riêng. Luật cũ còn nguyên để tắt được. |
 | File thử điểm bị từ chối quyền ở ProgramData | Thả phiếu qua LocalAppData cho AutoCan gửi. |
 | Phiên có kg mà không có ảnh | Lần 11/11, ping camera `192.168.100.101` và `.102` trả Destination host unreachable từ máy `.20`. Sửa dây và hub trước khi sửa code chụp. |
+| App 0.18.49 tắt ngay khi mở | 0.18.50 bỏ lệnh ép rộng cột Lúc. Không đặt lại lệnh đó lúc lưới chưa dựng. |
+| Python phình RAM sau nhiều phiếu | 0.18.51 một luồng, trả bộ nhớ sau mỗi phiếu. |
 
 ---
 
@@ -151,8 +164,8 @@ Admin sửa phiếu Nghi bằng PIN là đường tạm. Phiếu OK không mở 
 Không đánh dấu xong.
 
 - [ ] Khoảng 20 lượt kg: mặt Kingbird, số đã khóa, sổ cũ, cùng một xe. Lệch thì sửa cửa hoặc ε, không thêm tính năng.
-- [ ] Vài mẫu bột trên 1.2.0 đối với đèn máy bột. Bốn nhịp 11/11 bị rơi là bản cũ, chưa phải bằng chứng bản mới.
-- [ ] Biển ban đêm và biển mất một chữ vẫn ra đúng mà không đoán. Nhánh 0.18.44 cố ý để Nghi những ca đó.
+- [ ] Vài mẫu bột đối với đèn máy bột. Bốn nhịp 11/11 bị rơi là bản cũ, chưa phải bằng chứng bản đang chạy.
+- [ ] Biển ban đêm và biển mất một chữ vẫn ra đúng mà không bịa ký tự. Mốc 0.18.51 cố ý để Nghi những ca thiếu chữ, trừ khi đoán 85% khớp sổ.
 - [ ] Camera trả lời ping ổn định rồi mới xét lại code chụp.
 - [ ] Đếm phiếu “Đã sửa” và “Read AI”. Nếu đường vá đông hơn đường tự động thì OCR chưa đạt mục 3.
 - [ ] Ít nhất 30 ngày lịch lệch dưới 1% với sổ cũ, cả ngày củ mì và ngày hàng khác.
@@ -182,4 +195,33 @@ Sửa chấm điểm thì chỉ sửa repo BM-ThuDiem.
 Sửa ghép biển thì sửa `ocr/branch.py`, không sửa `decide()` trừ khi luật cũ đang sai một ca đã có ảnh chứng.  
 Sửa màu mill thì không phát hành lại exe.
 
-*Hết whitepaper 11/11/2026. Đích vẫn là bốn câu ở mục 1.*
+Bản sau 0.18.51 mà lỗi nặng: cài lại [0.18.51](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/releases/download/v0.18.51/BM-AutoCan-Desktop-0.18.51.zip).  
+Nếu 0.18.51 không mở được: [0.18.50](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/releases/download/v0.18.50/BM-AutoCan-Desktop-0.18.50.zip).  
+Giải nén đè `C:\BM_AutoCan_Software`. Không đè `C:\ProgramData\BmCancomp`.
+
+---
+
+## 8. Từ 0.18.37 tới mốc 0.18.51
+
+Đây là gốc cho lần sửa sau. Không viết lại các việc trong bảng.
+
+| Bản | Còn gì trong mốc |
+|---|---|
+| 0.18.37 | Hết chặn ảnh 413 trước YOLO. Số 0 thoáng không cắt phiên bột. Từng chạy ổn trước khi tách cổng xong. |
+| 0.18.38–0.18.40 | Tách sổ bột sang BM-ThuDiem. Có lúc code nghe nhầm COM5. 0.18.39 khóa COM5 cho Kingbird, COM4 cho thử điểm. 0.18.40 không tự mở cửa sổ bột cũ. |
+| 0.18.41–0.18.44 | Nút Đọc AI, tối đa 5 ảnh, chỉ ghi khi đúng mẫu và chắc từ 70%. Nén ảnh trước khi gửi. Nhánh ghép biển tắt bằng `BM_PLATE_BRANCH=0`. AutoCan không mở COM4. |
+| 0.18.45 | Ảnh CAM F và CAM R phóng ngang, cắt trên dưới. Giữ tỉ lệ. |
+| 0.18.46 | Cùng remooc trong ngày, biển lệch một ký tự thì để Nghi. |
+| 0.18.47 | Chọn Python có numpy, không lặp cửa sổ chết. Gộp khung YOLO nằm sát. Thẻ tổng số xe và tỉ lệ thành công. |
+| 0.18.48 | Bỏ chỗ hiện COM bột và ba nút không dùng trên màn chính. Tự Đọc AI khi đã tick và tỉ lệ dưới 95%. |
+| 0.18.49 | Dòng cắt ngày, hướng vào rồi ra, đèn OCR và Thử điểm, đoán 85%. Bản này tắt lúc mở vì ép rộng cột Lúc. Không cài lại. |
+| 0.18.50 | Bỏ lệnh ép rộng. App mở được. Mốc lùi nếu 0.18.51 hỏng. |
+| 0.18.51 | Python một luồng, trả RAM sau mỗi phiếu. Mốc đang chạy. |
+
+Chưa làm, đừng ghi như đã xong:
+
+- Đọc AI tay trên phiếu đã OK, để sửa biển Paddle đọc nhầm.
+- Dòng cắt ngày hiện đủ câu trên cả hàng.
+- Một cửa sổ, ba trang, một icon. Khi làm thì nhúng cửa sổ hiện có, không viết lại công thức.
+
+*Hết whitepaper 19/11/2026. Đích vẫn là bốn câu ở mục 1. Gốc code là 0.18.51.*

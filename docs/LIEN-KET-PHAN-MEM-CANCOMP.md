@@ -1,11 +1,11 @@
 # Liên kết phần mềm CANcomp
 
-Người sửa mill đọc file này trước khi đổi đường cân. Ngày cập nhật **11/11/2026**.
+Người sửa mill đọc file này trước khi đổi đường cân. Ngày cập nhật **19/11/2026**.
 
 | | |
 |---|---|
-| Phiếu kg, camera, BM-OCR | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp — bản **0.18.44** |
-| Điểm bột | https://github.com/nguyenmian3012-code/BM-ThuDiem — bản **1.2.0** |
+| Phiếu kg, camera, BM-OCR | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp — mốc **0.18.51**, lùi **0.18.50** |
+| Điểm bột | https://github.com/nguyenmian3012-code/BM-ThuDiem — cửa sổ máy 19/11 ghi **1.5.1** |
 | Đích và việc còn lại | [WHITEPAPER.md](../WHITEPAPER.md), [TASKS.md](./TASKS.md) |
 | Bản đồ | [HE-THONG-CAN-XE-BINH-MINH.md](./HE-THONG-CAN-XE-BINH-MINH.md) |
 

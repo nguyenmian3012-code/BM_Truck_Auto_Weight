@@ -1,6 +1,6 @@
 # Hệ thống Cân xe Bình Minh — cấu trúc đã chốt
 
-Ngày chốt bản đồ gốc: **25/09/2026**. Cập nhật đang chạy: **11/11/2026**.  
+Ngày chốt bản đồ gốc: **25/09/2026**. Cập nhật đang chạy: **19/11/2026**. Mốc phần mềm: **0.18.51**.  
 Nhà máy tinh bột khoai mì Bình Minh. Host mill: https://canxe.redtigerhead.com
 
 Đọc mục 0 trước. Phần bên dưới là quyết định tháng 9 còn hiệu lực về dây và sổ cũ. Chỗ nào mục 0 nói khác thì tin mục 0.
@@ -13,16 +13,18 @@ File này tồn tại ở **hai repo**. Sửa một bên thì đối chiếu bê
 | Phần mềm CANcomp | https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp/blob/main/docs/HE-THONG-CAN-XE-BINH-MINH.md |
 | Điểm bột | https://github.com/nguyenmian3012-code/BM-ThuDiem |
 
-## 0. Đang chạy 11/11/2026
+## 0. Đang chạy 19/11/2026
 
 ```
   Sổ cũ                         không cài phần mềm mới
   Kingbird COM2 ── DTECH ── OUTPUT1 → sổ cũ
-                         └─ OUTPUT2 → USB-RS232 → CANcomp COM5 → BM Auto Cân 0.18.44
-  Máy bột USB-RS232 → CANcomp COM4 → BM-ThuDiem 1.2.0
+                         └─ OUTPUT2 → USB-RS232 → CANcomp COM5 → BM Auto Cân 0.18.51
+  Máy bột USB-RS232 → CANcomp COM4 → BM-ThuDiem (cửa sổ máy 19/11 ghi 1.5.1)
   Cam F / R / S ── LAN ── CANcomp → AutoCan chụp → BM-OCR đọc biển
   BM-ThuDiem thả file điểm → AutoCan POST /api/ingest → canxe.redtigerhead.com
 ```
+
+Lỗi nặng ở bản sau 0.18.51 thì cài lại 0.18.51. Nếu 0.18.51 không mở được thì cài 0.18.50. Không về 0.18.10 hay 0.18.49.
 
 | Luật | |
 |---|---|
@@ -101,7 +103,7 @@ Yêu cầu:
 | Khung đã chốt 29/09/2026 | `NNNNNN=` là **gram viết ngược**. `040500=` = 5040 g khô. `075000=` = 570 g ướt. `000000=` = 0 |
 | Cổng trên CANcomp | **COM4**, chỉ BM-ThuDiem. Không mở từ AutoCan. |
 | Cấu hình | **1200 8N1**, DTR tắt, RTS tắt, không software flow. Không 7N1. |
-| Lọc đang chạy 11/11 | BM-ThuDiem 1.2.0. Khô: mẫu gần 5000 g trong 4200–5800 g. Ướt: trung vị của cao nguyên 150–1200 g, thường 300–700 g. `5000 × ướt / khô`, tra Phụ lục 228. 522 g = 22,4%. Không dùng khô − ướt. Nước rung không được làm mất phiếu. |
+| Lọc đã chốt | BM-ThuDiem, không nằm trong zip AutoCan. Khô: mẫu gần 5000 g trong 4200–5800 g. Ướt: trung vị của cao nguyên 150–1200 g, thường 300–700 g. `5000 × ướt / khô`, tra Phụ lục 228. 522 g = 22,4%. Không dùng khô − ướt. Nước rung không được làm mất phiếu. |
 
 ### Bảo mật trên máy
 
@@ -149,7 +151,7 @@ Theo whitepaper và mill v5 trong repo cha:
 
 ## 4. Thứ tự đưa vào vận hành
 
-1. CANcomp đang chạy AutoCan 0.18.44, BM-OCR 0.18.44 và BM-ThuDiem 1.2.0. Việc kế: 20 lượt kg và một ca bột đối với sổ cũ và đèn máy. Lệch kg thì sửa ε hoặc cửa, không thêm tính năng.
+1. CANcomp đang chạy AutoCan 0.18.51 và BM-OCR cùng gói. BM-ThuDiem là chương trình riêng. Việc kế: 20 lượt kg và một ca bột đối với sổ cũ và đèn máy. Lệch kg thì sửa ε hoặc cửa, không thêm tính năng. Chi tiết 15 bản gần: [WHITEPAPER.md](../WHITEPAPER.md) mục 8.
 2. Worker nhận được kg và điểm trước khi bật key production.
 3. Sổ cũ vẫn là căn cho đến khi lệch dưới 1% đủ 30 ngày.
 4. Ảnh: một `eventId` lúc khóa kg, một JPEG, ACK ảnh mới cho xuống. Không đợi OCR.

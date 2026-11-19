@@ -19,7 +19,7 @@ Cổng ra: 30 ngày lịch lệch dưới 1%. Chưa tới cổng đó thì sổ 
 | [BM_CANXE_SOFT_CANcomp](https://github.com/nguyenmian3012-code/BM_CANXE_SOFT_CANcomp) | Phiếu kg, camera, BM-OCR, COM5 |
 | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) | Điểm bột, COM4 |
 
-Sửa luật kg hoặc hợp đồng ingest thì sửa repo phần mềm và whitepaper trong cùng ngày. Sửa điểm bột thì không đụng AutoCan.
+Sửa luật kg hoặc hợp đồng ingest thì sửa repo phần mềm và whitepaper trong cùng ngày. Sửa điểm bột thì không đụng AutoCan. Gốc desktop là **0.18.51**. Lỗi nặng thì về bản đó, hoặc **0.18.50** nếu 0.18.51 không mở được.
 
 ## Đừng làm lại
 
