@@ -901,9 +901,19 @@ function ticketsPage(rows, ngay) {
   const body = rows.map(x => {
     const when = String(x.ts || "").replace("T", " ").slice(11, 19);
     const val = x.source === "starch" ? (x.starch_pct ?? "") + " %" : Number(x.kg || 0).toLocaleString("vi-VN");
-    const shot = x.shot_key ? '<a href="/api/shot?id=' + esc(x.id) + '">ảnh</a>' : "";
     const plate = x.plate || (x.ocr_status === "pending" || x.ocr_status === "reading" ? "đang đọc" : "");
-    return "<tr><td>" + esc(when) + "</td><td>" + esc(x.source) + "</td><td>" + esc(val) + "</td><td>" + esc(plate) + "</td><td>" + esc(x.vehicle_type || "") + "</td><td>" + esc(x.cargo_guess || "") + "</td><td>" + esc(x.ocr_status || "") + "</td><td>" + shot + "</td></tr>";
+    let ocrResult = x.ocr_status || "";
+    if (x.plate && ocrResult === "ok") ocrResult = "ok";
+    else if (!x.plate && (x.ocr_status === "pending" || x.ocr_status === "reading")) ocrResult = "đang đọc";
+    else if (!x.plate) ocrResult = x.ocr_status || "fail";
+    let err = "";
+    try {
+      const j = JSON.parse(x.ocr_json || "{}");
+      if (j.first_error) err = j.first_error;
+      else if (j.reason && j.reason !== "yolo-paddle" && j.reason !== "reading") err = j.reason;
+    } catch {}
+    if (!err && !x.plate && x.ocr_status && x.ocr_status !== "ok") err = x.ocr_status;
+    return "<tr><td>" + esc(when) + "</td><td>" + esc(ocrResult) + "</td><td>" + esc(val) + "</td><td>" + esc(plate) + "</td><td>" + esc(err) + "</td><td>" + esc(x.cargo_guess || "") + "</td></tr>";
   }).join("");
   const prev = nextDayBack(ngay);
   const nxt = nextDay(ngay);
@@ -913,7 +923,7 @@ function ticketsPage(rows, ngay) {
 <h1>Phiếu đơn ${esc(ngay)}</h1>
 <p>${xe} lần cân xe · ${bot} điểm bột. Mỗi lần một dòng. Chưa có biển thì chưa có phiên.</p>
 <form><a href="/phieu?ngay=${esc(prev)}">← Hôm trước</a><input type="date" name="ngay" value="${esc(ngay)}"><button>Xem</button><a href="/phieu?ngay=${esc(nxt)}">Hôm sau →</a></form>
-<table><tr><th>Giờ</th><th>Nguồn</th><th>Số</th><th>Biển</th><th>Loại xe</th><th>Hàng</th><th>OCR</th><th>Ảnh</th></tr>${body || "<tr><td colspan=8>Không có phiếu ngày này.</td></tr>"}</table>`, {
+<table><tr><th>Giờ</th><th>OCR Result</th><th>Số</th><th>Biển</th><th>Lỗi / Lý do</th><th>Hàng</th></tr>${body || "<tr><td colspan=6>Không có phiếu ngày này.</td></tr>"}</table>`, {
     headers: { "content-type": "text/html;charset=utf-8", "cache-control": "no-store" },
   });
 }
@@ -952,7 +962,7 @@ export default {
       await ensureShotColumns(env);
       const ngay = url.searchParams.get("ngay") || todayVn();
       const rs = await env.TICKETS.prepare(
-        "SELECT source, kg, starch_pct, ts, direction, id, shot_key, plate, vehicle_type, cargo_guess, ocr_status FROM tickets WHERE ts >= ? AND ts < ? ORDER BY ts DESC"
+        "SELECT source, kg, starch_pct, ts, direction, id, shot_key, plate, vehicle_type, cargo_guess, ocr_status, ocr_json FROM tickets WHERE ts >= ? AND ts < ? ORDER BY ts DESC"
       ).bind(ngay + "T00:00:00+07:00", nextDay(ngay) + "T00:00:00+07:00").all();
       return ticketsPage(rs.results || [], ngay);
     }
