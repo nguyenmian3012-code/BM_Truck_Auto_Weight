@@ -61,5 +61,3 @@ CREATE TABLE IF NOT EXISTS sessions (
   locked INTEGER DEFAULT 0,
   note TEXT
 );
-CREATE INDEX IF NOT EXISTS ix_sessions_plate ON sessions(plate);
-CREATE INDEX IF NOT EXISTS ix_sessions_opened ON sessions(opened_at);
