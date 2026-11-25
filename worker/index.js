@@ -765,10 +765,11 @@ async function loadKingbird(env, plate) {
 }
 
 function sessionBinds(s) {
+  const v = (x) => x === undefined ? null : x;
   return [
     s.id, s.plate || "", s.trailer_plate || "", s.customer || "", s.card || "", s.status,
     s.first_ticket_id || "", s.last_ticket_id || "",
-    s.kg_in, s.kg_out, s.net_kg, s.net_kg_rounded, s.starch_pct,
+    v(s.kg_in), v(s.kg_out), v(s.net_kg), v(s.net_kg_rounded), v(s.starch_pct),
     s.opened_at || "", s.closed_at || "",
     s.overnight || 0, s.service || 0, s.edit_count || 0, s.locked || 0, s.note || "",
   ];
@@ -807,11 +808,17 @@ async function syncSessions(env, plate) {
 
 async function rebuildAllSessions(env) {
   await ensureSessions(env);
-  const rs = await env.TICKETS.prepare(
-    `SELECT id, plate, trailer_plate, kg, ts, customer, starch_pct FROM tickets
-     WHERE source='kingbird' AND kg IS NOT NULL ORDER BY ts ASC, id ASC`
-  ).all();
-  const sessions = pairTickets(rs.results || [], Date.now());
+  const rows = [];
+  for (let offset = 0; offset < 20000; offset += 400) {
+    const rs = await env.TICKETS.prepare(
+      `SELECT id, plate, trailer_plate, kg, ts, customer, starch_pct FROM tickets
+       WHERE source='kingbird' AND kg IS NOT NULL ORDER BY ts ASC, id ASC LIMIT 400 OFFSET ?`
+    ).bind(offset).all();
+    const part = rs.results || [];
+    rows.push(...part);
+    if (part.length < 400) break;
+  }
+  const sessions = pairTickets(rows, Date.now());
   await env.TICKETS.prepare("DELETE FROM sessions WHERE locked=0").run();
   await writeSessions(env, sessions);
   return sessions.length;
@@ -1108,14 +1115,21 @@ export default {
     if (url.pathname === "/api/yard" && request.method === "GET") return listYard(env);
     if (url.pathname === "/api/yard/clear" && request.method === "POST") return clearYard(request, env);
     if (url.pathname === "/api/phien" && request.method === "GET") return listPhien(env, url.searchParams.get("off"));
-    if (url.pathname === "/api/sessions" && request.method === "GET") return listSessions(env, url.searchParams.get("ngay"));
+    if (url.pathname === "/api/sessions" && request.method === "GET") {
+      try { return await listSessions(env, url.searchParams.get("ngay")); }
+      catch (e) { return new Response(String((e && e.stack) || e).slice(0, 2500), { status: 500, headers: { "content-type": "text/plain;charset=utf-8" } }); }
+    }
     if (url.pathname === "/sessions") {
-      if (!env.TICKETS) return new Response("chua co bang", { status: 503 });
-      const ngay = url.searchParams.get("ngay") || todayVn();
-      await rebuildAllSessions(env);
-      const rs = await env.TICKETS.prepare("SELECT * FROM sessions ORDER BY opened_at DESC, id DESC").all();
-      const rows = (rs.results || []).filter((s) => sessionOnDay(s, ngay));
-      return sessionsPage(rows, ngay);
+      try {
+        if (!env.TICKETS) return new Response("chua co bang", { status: 503 });
+        const ngay = url.searchParams.get("ngay") || todayVn();
+        await rebuildAllSessions(env);
+        const rs = await env.TICKETS.prepare("SELECT * FROM sessions ORDER BY opened_at DESC, id DESC").all();
+        const rows = (rs.results || []).filter((s) => sessionOnDay(s, ngay));
+        return sessionsPage(rows, ngay);
+      } catch (e) {
+        return new Response(String((e && e.stack) || e).slice(0, 2500), { status: 500, headers: { "content-type": "text/plain;charset=utf-8" } });
+      }
     }
     if (url.pathname === "/phieu") {
       if (!env.TICKETS) return new Response("chua co bang", { status: 503 });
