@@ -39,3 +39,27 @@ CREATE TABLE IF NOT EXISTS shots (
   bytes INTEGER NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  plate TEXT,
+  trailer_plate TEXT,
+  customer TEXT,
+  card TEXT,
+  status TEXT NOT NULL,
+  first_ticket_id TEXT,
+  last_ticket_id TEXT,
+  kg_in REAL,
+  kg_out REAL,
+  net_kg REAL,
+  net_kg_rounded REAL,
+  starch_pct REAL,
+  opened_at TEXT,
+  closed_at TEXT,
+  overnight INTEGER DEFAULT 0,
+  service INTEGER DEFAULT 0,
+  edit_count INTEGER DEFAULT 0,
+  locked INTEGER DEFAULT 0,
+  note TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_sessions_plate ON sessions(plate);
+CREATE INDEX IF NOT EXISTS ix_sessions_opened ON sessions(opened_at);
