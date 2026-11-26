@@ -20,6 +20,8 @@ Nhà máy **chưa có** trang web nội bộ tương ứng với canxe. Trên LA
 
 Làm tiếp trên CANcomp, SQLite đã có, trình duyệt trong mạng nhà máy. Không đưa mỗi phiếu lên D1 để thử giao diện. Mill public giữ như đang chạy, không phát triển thêm. Mở lại public chỉ khi trang nội bộ đã đủ phiếu, phiên và in, và còn cần xem từ ngoài nhà máy.
 
+Trang nội bộ nằm ở `localweb/`. Chạy `Chay-trang-noi-bo.bat` trên CANcomp. Máy mình mở `http://127.0.0.1:8780/`. Máy khác trong xưởng mở `http://192.168.100.10:8780/` nếu tường lửa Windows cho cổng 8780. Trang chỉ đọc `cancomp.db`, không đụng cổng COM, không đụng OCR cổng 8765, không ghi D1. Chưa bật trên CANcomp từ xa được: máy nhà máy không nằm trong mạng này.
+
 Bản 09/10 còn đúng về **đích**. Nó sai về cách làm hiện tại: OCR đã nằm trên CANcomp, điểm bột đã tách sang BM-ThuDiem, AutoCan không còn mở cổng máy bột.
 
 ---
