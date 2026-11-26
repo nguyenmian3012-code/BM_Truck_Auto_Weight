@@ -32,3 +32,7 @@ Sửa luật kg hoặc hợp đồng ingest thì sửa repo phần mềm và whi
 - Không cài lên máy sổ cũ.
 
 Việc còn lại: [docs/TASKS.md](docs/TASKS.md).
+
+## 26/11/2026 — nội bộ trước
+
+canxe.redtigerhead.com đóng băng. Không thêm route hay bảng nào ghi D1 để thử giao diện. Trang cho người xem làm trên CANcomp, HTTP trong LAN, đọc SQLite local. Public chỉ mở lại khi trang nội bộ đã đủ và còn cần xem từ ngoài nhà máy. Hiện không có URL nội bộ: CANcomp không phục vụ trang web.

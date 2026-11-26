@@ -11,8 +11,14 @@ Phần mềm đang chạy trên CANcomp. **0.18.51 là mốc.** Bản sau mà l�
 | BM-OCR (cùng gói exe, Python) | cùng repo desktop | **0.18.51** |
 | BM-ThuDiem | [BM-ThuDiem](https://github.com/nguyenmian3012-code/BM-ThuDiem) | cửa sổ trên máy 19/11 ghi **1.5.1** |
 
-Mill: [canxe.redtigerhead.com](https://canxe.redtigerhead.com).  
+Mill public: [canxe.redtigerhead.com](https://canxe.redtigerhead.com) — **đóng băng từ 26/11/2026**. Không thêm chức năng ghi D1 trên mill cho đến khi trang nội bộ chạy.
 Bản đồ dây: [docs/HE-THONG-CAN-XE-BINH-MINH.md](docs/HE-THONG-CAN-XE-BINH-MINH.md).
+
+### Chiến thuật 26/11/2026 — HTTP nội bộ trước, public sau
+
+Nhà máy **chưa có** trang web nội bộ tương ứng với canxe. Trên LAN chỉ có cửa sổ AutoCan trên CANcomp, và BM-OCR nghe `127.0.0.1:8765/read` (máy tự gọi, không phải trang cho người). IP CANcomp đang dùng trong sổ là `192.168.100.10`. Tài liệu cũ còn ghi `192.168.30.98` — đó là địa chỉ trước, không phải một trang web.
+
+Làm tiếp trên CANcomp, SQLite đã có, trình duyệt trong mạng nhà máy. Không đưa mỗi phiếu lên D1 để thử giao diện. Mill public giữ như đang chạy, không phát triển thêm. Mở lại public chỉ khi trang nội bộ đã đủ phiếu, phiên và in, và còn cần xem từ ngoài nhà máy.
 
 Bản 09/10 còn đúng về **đích**. Nó sai về cách làm hiện tại: OCR đã nằm trên CANcomp, điểm bột đã tách sang BM-ThuDiem, AutoCan không còn mở cổng máy bột.
 
