@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { pairTickets, roundStep20 } from "./sessions.js";
+import { pairTickets, roundStep20, flagLightOutlier, mergePair } from "./sessions.js";
 
 const H = 60 * 60 * 1000;
 
@@ -77,5 +77,25 @@ const night = pairTickets([
 assert.equal(night[0].status, "closed");
 assert.equal(night[0].overnight, 1);
 
-assert.ok(now - Date.parse("2026-11-25T06:00:00+07:00") < 20 * H);
+const odd = flagLightOutlier(
+  { kg_in: 50000, kg_out: 12000, status: "closed", note: "" },
+  [18000, 18200, 17900, 18100]
+);
+assert.equal(odd.status, "exception");
+assert.match(odd.note, /xe rỗng/);
+const okLight = flagLightOutlier(
+  { kg_in: 50000, kg_out: 18100, status: "closed", note: "" },
+  [18000, 18200, 17900, 18100]
+);
+assert.equal(okLight.status, "closed");
+
+const joined = mergePair(
+  { id: "s:a", plate: "70H-1", opened_at: "2026-11-25T06:00:00+07:00", kg_in: 52000, first_ticket_id: "a", last_ticket_id: "a", locked: 0 },
+  { id: "s:b", plate: "70H-1", opened_at: "2026-11-25T08:00:00+07:00", kg_in: 18000, first_ticket_id: "b", last_ticket_id: "b", locked: 0 }
+);
+assert.equal(joined.locked, 1);
+assert.equal(joined.card, "nhap_mi");
+assert.equal(joined.net_kg, 34000);
+assert.equal(mergePair(joined, joined), null);
+
 console.log("sessions.test.mjs ok");

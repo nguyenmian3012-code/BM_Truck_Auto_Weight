@@ -188,3 +188,61 @@ export function pairTickets(rows, nowMs) {
   }
   return sessions;
 }
+
+export function flagLightOutlier(session, samples) {
+  if (!session || session.locked) return session;
+  if (session.kg_in == null || session.kg_out == null) return session;
+  if (String(session.note || "").includes("kg nhẹ lệch xe rỗng")) return session;
+  const lights = (samples || []).map(Number).filter((n) => n >= 4000 && n <= 32000);
+  if (lights.length < 4) return session;
+  const light = Math.min(Number(session.kg_in), Number(session.kg_out));
+  const min = Math.min(...lights);
+  const max = Math.max(...lights);
+  if (light >= min - 1000 && light <= max + 1000) return session;
+  return {
+    ...session,
+    status: "exception",
+    note: [session.note, "kg nhẹ lệch xe rỗng"].filter(Boolean).join(". "),
+  };
+}
+
+export function mergePair(a, b) {
+  if (!a || !b || a.id === b.id) return null;
+  if (Number(a.locked) === 1 || Number(b.locked) === 1) return null;
+  const first = String(a.opened_at || "") <= String(b.opened_at || "") ? a : b;
+  const second = first === a ? b : a;
+  const kgIn = Number(first.kg_in ?? first.kg_out);
+  const kgOut = Number(second.kg_out ?? second.kg_in);
+  if (!Number.isFinite(kgIn) || !Number.isFinite(kgOut)) return null;
+  const diff = kgIn - kgOut;
+  const net = Math.abs(diff);
+  let card = "khac";
+  if (diff > 500) card = "nhap_mi";
+  else if (-diff > 500) card = "xuat_bot";
+  const trailerIn = String(first.trailer_plate || "");
+  const trailerOut = String(second.trailer_plate || "");
+  const mismatch = trailerIn && trailerOut && trailerIn !== trailerOut;
+  const ids = [first.first_ticket_id || first.id, second.first_ticket_id || second.id].filter(Boolean).sort();
+  return {
+    id: "m:" + ids.join(":"),
+    plate: first.plate || second.plate || "",
+    trailer_plate: trailerIn || trailerOut,
+    customer: first.customer || second.customer || "",
+    card,
+    status: mismatch ? "exception" : "closed",
+    first_ticket_id: first.first_ticket_id || "",
+    last_ticket_id: second.last_ticket_id || second.first_ticket_id || "",
+    kg_in: kgIn,
+    kg_out: kgOut,
+    net_kg: net,
+    net_kg_rounded: roundStep20(net),
+    starch_pct: first.starch_pct ?? second.starch_pct ?? null,
+    opened_at: first.opened_at || "",
+    closed_at: second.closed_at || second.opened_at || "",
+    overnight: 0,
+    service: 0,
+    edit_count: 1,
+    locked: 1,
+    note: mismatch ? "ghép tay. remooc lệch" : "ghép tay",
+  };
+}
