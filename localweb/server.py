@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from pair import pair_tickets, vn_day
+from pair import calc_text, flag_light_outlier, pair_tickets, vn_day
 
 HOST = os.environ.get("CANXE_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CANXE_PORT", "8780"))
@@ -84,7 +84,41 @@ def load_rows(cx, since):
         return [dict(r) for r in cx.execute(sql, (since,)).fetchall()]
 
 
+def load_lights(cx):
+    sql = """
+      SELECT id, plate, kg FROM events
+      WHERE IFNULL(source,'')='kingbird' AND kg>=4000 AND kg<=32000
+      ORDER BY ts DESC LIMIT 500
+    """
+    try:
+        return [dict(r) for r in cx.execute(sql).fetchall()]
+    except sqlite3.OperationalError:
+        return []
+
+
+def apply_known_empty(sessions, lights):
+    by_plate = {}
+    for row in lights:
+        plate = str(row.get("plate") or "").strip().upper()
+        if plate:
+            by_plate.setdefault(plate, []).append(row)
+    out = []
+    for session in sessions:
+        used = {session.get("first_ticket_id"), session.get("last_ticket_id")}
+        samples = []
+        for row in by_plate.get(str(session.get("plate") or "").strip().upper(), []):
+            if row.get("id") in used:
+                continue
+            samples.append(row.get("kg"))
+            if len(samples) >= 8:
+                break
+        out.append(flag_light_outlier(session, samples))
+    return out
+
+
 def on_day(row, day):
+    ts = str(row.get("ts") or "")
+    return ts.startswith(day) or vn_day(ts) == day
     ts = str(row.get("ts") or "")
     return ts.startswith(day) or vn_day(ts) == day
 
@@ -214,14 +248,15 @@ def render_sessions(day, sessions, db):
                 esc(kg(s["net_kg_rounded"])),
                 esc(opened),
                 esc(closed),
-                esc(s["note"]),
+                esc(calc_text(s)),
             )
         )
     body = (
         f"<h1>Phiên {esc(day)}</h1>"
         f"<p>{len(mi)} xe nhập mì · {tons(mi)} t · {len(bot)} xe xuất bột · {tons(bot)} t</p>"
+        + "<p>Cùng biển trong 20 giờ. Lệch dưới 200 kg là cân lại, lấy lần cuối. Vào nặng hơn ra trên 500 kg là nhập mì. Ngược lại là xuất bột. Net giữ số cân. Làm tròn 20 kg chỉ để đối sổ cũ.</p>"
         + day_nav(day, "/sessions")
-        + "<table><tr><th>Trạng thái</th><th>Biển</th><th>Loại</th><th>Kg vào</th><th>Kg ra</th><th>Net</th><th>Net 20</th><th>Mở</th><th>Đóng</th><th>Ghi chú</th></tr>"
+        + "<table><tr><th>Trạng thái</th><th>Biển</th><th>Loại</th><th>Kg vào</th><th>Kg ra</th><th>Net</th><th>Net 20</th><th>Mở</th><th>Đóng</th><th>Cách tính</th></tr>"
         + ("".join(lines) or "<tr><td colspan=10>Không có phiên ngày này.</td></tr>")
         + "</table>"
     )
@@ -269,13 +304,14 @@ class Handler(BaseHTTPRequestHandler):
             since = prev_day(prev_day(day)) + "T00:00:00+07:00"
             try:
                 rows = load_rows(cx, since)
+                lights = load_lights(cx)
             except sqlite3.Error as e:
                 cx.close()
                 body = shell("Lỗi sổ", day, path, "<h1>Không đọc được sổ</h1><p>%s</p>" % esc(e))
                 self._html(body)
                 return
             cx.close()
-            sessions = pair_tickets(rows)
+            sessions = apply_known_empty(pair_tickets(rows), lights)
             if url.path in ("/", "/index.html"):
                 body = render_home(day, rows, sessions, path)
             elif url.path == "/phieu":

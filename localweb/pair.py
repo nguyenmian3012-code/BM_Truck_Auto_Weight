@@ -213,3 +213,50 @@ def pair_tickets(rows, now_ms=None):
             open_["reason"] = "đang mở" if now - open_["openedT"] <= WINDOW_MS else "quá 20 giờ, chưa có lượt kia"
         push_open()
     return sessions
+
+
+def flag_light_outlier(session, samples):
+    if not session or session.get("locked"):
+        return session
+    if session.get("kg_in") is None or session.get("kg_out") is None:
+        return session
+    if "kg nhẹ lệch xe rỗng" in str(session.get("note") or ""):
+        return session
+    lights = []
+    for raw in samples or []:
+        n = num(raw)
+        if n is not None and 4000 <= n <= 32000:
+            lights.append(n)
+    if len(lights) < 4:
+        return session
+    light = min(float(session["kg_in"]), float(session["kg_out"]))
+    if min(lights) - 1000 <= light <= max(lights) + 1000:
+        return session
+    note = ". ".join(x for x in (session.get("note"), "kg nhẹ lệch xe rỗng") if x)
+    changed = dict(session)
+    changed["status"] = "exception"
+    changed["note"] = note
+    return changed
+
+
+def calc_text(session):
+    bits = []
+    note = str(session.get("note") or "")
+    if note:
+        bits.append(note)
+    kg_in = num(session.get("kg_in"))
+    kg_out = num(session.get("kg_out"))
+    if kg_in is None or kg_out is None:
+        return ". ".join(bits)
+    diff = kg_in - kg_out
+    net = abs(diff)
+    if diff > CARGO_MIN:
+        bits.append("nhập mì vì vào nặng hơn ra %s kg" % int(round(net)))
+    elif -diff > CARGO_MIN:
+        bits.append("xuất bột vì ra nặng hơn vào %s kg" % int(round(net)))
+    else:
+        bits.append("lệch %s kg, dưới 500 kg, không tính là hàng" % int(round(net)))
+    rounded = session.get("net_kg_rounded")
+    if rounded is not None and net is not None and int(rounded) != int(round(net)):
+        bits.append("làm tròn bước 20 thành %s kg để đối sổ cũ" % int(rounded))
+    return ". ".join(bits)
