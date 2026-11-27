@@ -5,7 +5,6 @@ import sqlite3
 from datetime import datetime, timedelta
 from html import escape as html_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from pair import calc_text, flag_light_outlier, pair_tickets, vn_day
@@ -27,13 +26,41 @@ def db_candidates():
     return found
 
 
+def connect_read(path):
+    cx = sqlite3.connect(path, timeout=3)
+    cx.row_factory = sqlite3.Row
+    cx.execute("PRAGMA busy_timeout=3000")
+    cx.execute("PRAGMA query_only=1")
+    return cx
+
+
+def freshness(path):
+    newest = 0
+    for extra in ("", "-wal"):
+        candidate = path + extra
+        if os.path.isfile(candidate):
+            newest = max(newest, os.path.getmtime(candidate))
+    return newest
+
+
 def open_db():
-    for path in db_candidates():
-        if path and os.path.isfile(path):
-            cx = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True, timeout=3)
-            cx.row_factory = sqlite3.Row
-            return cx, path
+    paths = [path for path in db_candidates() if path and os.path.isfile(path)]
+    paths.sort(key=freshness, reverse=True)
+    for path in paths:
+        try:
+            return connect_read(path), path
+        except sqlite3.Error:
+            continue
     return None, ""
+
+
+def ledger_note(cx):
+    try:
+        count = cx.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+        last = cx.execute("SELECT MAX(ts) FROM events").fetchone()[0] or "không có"
+    except sqlite3.Error:
+        return ""
+    return "Sổ có %d dòng, mới nhất %s." % (count, last)
 
 
 def today_vn():
@@ -135,6 +162,7 @@ def sessions_on(day, sessions):
 
 
 PAGE = """<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="5">
 <title>{title}</title>
 <style>
 body{{font:14px/1.45 system-ui,sans-serif;margin:24px;background:#2a0a12;color:#f6eee6}}
@@ -148,14 +176,14 @@ input{{background:#4a1820;color:#f6eee6;border:1px solid #6b2a34;padding:8px;bor
 small{{color:#e7c7b0}}
 </style>
 <p><a href="/?ngay={day}">Hôm nay</a> · <a href="/phieu?ngay={day}">Phiếu</a> · <a href="/sessions?ngay={day}">Phiên</a>
- · <small>nội bộ · không ghi D1 · {db}</small></p>
+ · <small>nội bộ · làm mới mỗi 5 giây · không ghi D1 · {db}<br>{note}</small></p>
 {body}
 """
 
 
-def shell(title, day, db, body):
-    name = os.path.basename(db) if db else "chưa thấy cancomp.db"
-    return PAGE.format(title=esc(title), day=esc(day), db=esc(name), body=body).encode("utf-8")
+def shell(title, day, db, body, note=""):
+    shown = db if db else "chưa thấy cancomp.db"
+    return PAGE.format(title=esc(title), day=esc(day), db=esc(shown), note=esc(note), body=body).encode("utf-8")
 
 
 def day_nav(day, path):
@@ -166,7 +194,7 @@ def day_nav(day, path):
     )
 
 
-def render_home(day, rows, sessions, db):
+def render_home(day, rows, sessions, db, note=""):
     today_rows = [r for r in rows if on_day(r, day)]
     today = sessions_on(day, sessions)
     mi = [s for s in today if s["status"] == "closed" and s["card"] == "nhap_mi"]
@@ -196,10 +224,10 @@ def render_home(day, rows, sessions, db):
         + (body_rows or "<tr><td colspan=4>Không có xe đang mở.</td></tr>")
         + "</table>"
     )
-    return shell("Cân xe " + day, day, db, body)
+    return shell("Cân xe " + day, day, db, body, note)
 
 
-def render_phieu(day, rows, db):
+def render_phieu(day, rows, db, note=""):
     today = [r for r in rows if on_day(r, day)]
     today.sort(key=lambda r: str(r.get("ts") or ""), reverse=True)
     lines = []
@@ -224,10 +252,10 @@ def render_phieu(day, rows, db):
         + ("".join(lines) or "<tr><td colspan=6>Không có phiếu ngày này.</td></tr>")
         + "</table>"
     )
-    return shell("Phiếu " + day, day, db, body)
+    return shell("Phiếu " + day, day, db, body, note)
 
 
-def render_sessions(day, sessions, db):
+def render_sessions(day, sessions, db, note=""):
     today = sessions_on(day, sessions)
     mi = [s for s in today if s["status"] == "closed" and s["card"] == "nhap_mi"]
     bot = [s for s in today if s["status"] == "closed" and s["card"] == "xuat_bot"]
@@ -260,7 +288,7 @@ def render_sessions(day, sessions, db):
         + ("".join(lines) or "<tr><td colspan=10>Không có phiên ngày này.</td></tr>")
         + "</table>"
     )
-    return shell("Phiên " + day, day, db, body)
+    return shell("Phiên " + day, day, db, body, note)
 
 
 def missing(day):
@@ -310,14 +338,15 @@ class Handler(BaseHTTPRequestHandler):
                 body = shell("Lỗi sổ", day, path, "<h1>Không đọc được sổ</h1><p>%s</p>" % esc(e))
                 self._html(body)
                 return
+            note = ledger_note(cx)
             cx.close()
             sessions = apply_known_empty(pair_tickets(rows), lights)
             if url.path in ("/", "/index.html"):
-                body = render_home(day, rows, sessions, path)
+                body = render_home(day, rows, sessions, path, note)
             elif url.path == "/phieu":
-                body = render_phieu(day, rows, path)
+                body = render_phieu(day, rows, path, note)
             elif url.path == "/sessions":
-                body = render_sessions(day, sessions, path)
+                body = render_sessions(day, sessions, path, note)
             else:
                 self.send_response(404)
                 self.send_header("content-type", "text/plain;charset=utf-8")
