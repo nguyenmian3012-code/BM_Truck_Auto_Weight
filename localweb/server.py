@@ -11,6 +11,7 @@ from pair import calc_text, flag_light_outlier, pair_tickets, vn_day
 
 HOST = os.environ.get("CANXE_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CANXE_PORT", "8780"))
+VERSION = "0.4"
 
 
 def db_candidates():
@@ -93,14 +94,15 @@ def kg(n):
 
 def load_rows(cx, since):
     sql = """
-      SELECT id, source, kg, starch_pct, ts, plate, trailer_plate, customer,
+      SELECT id, source, kg, starch_pct, ts, created_at, plate, trailer_plate, customer,
              ocr_status, ocr_reason, vehicle_type, direction, yard_card
       FROM events
-      WHERE IFNULL(source,'')='kingbird' AND kg IS NOT NULL AND ts>=?
-      ORDER BY ts ASC, id ASC
+      WHERE IFNULL(source,'')='kingbird' AND kg IS NOT NULL
+        AND (created_at>=? OR ts>=?)
+      ORDER BY created_at ASC, id ASC
     """
     try:
-        return [dict(r) for r in cx.execute(sql, (since,)).fetchall()]
+        return [dict(r) for r in cx.execute(sql, (since, since)).fetchall()]
     except sqlite3.OperationalError:
         sql = """
           SELECT id, source, kg, starch_pct, ts, plate, trailer_plate, customer
@@ -109,6 +111,10 @@ def load_rows(cx, since):
           ORDER BY ts ASC, id ASC
         """
         return [dict(r) for r in cx.execute(sql, (since,)).fetchall()]
+
+
+def when_of(row):
+    return str(row.get("created_at") or row.get("ts") or "")
 
 
 def load_lights(cx):
@@ -144,9 +150,7 @@ def apply_known_empty(sessions, lights):
 
 
 def on_day(row, day):
-    ts = str(row.get("ts") or "")
-    return ts.startswith(day) or vn_day(ts) == day
-    ts = str(row.get("ts") or "")
+    ts = when_of(row)
     return ts.startswith(day) or vn_day(ts) == day
 
 
@@ -163,7 +167,7 @@ def sessions_on(day, sessions):
 
 PAGE = """<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="5">
-<title>{title}</title>
+<title>Nội bộ {version} · {title}</title>
 <style>
 body{{font:14px/1.45 system-ui,sans-serif;margin:24px;background:#2a0a12;color:#f6eee6}}
 a{{color:#d4af37}} table{{border-collapse:collapse;width:100%}}
@@ -175,15 +179,15 @@ form{{display:flex;gap:8px;align-items:center;margin:8px 0}}
 input{{background:#4a1820;color:#f6eee6;border:1px solid #6b2a34;padding:8px;border-radius:8px}}
 small{{color:#e7c7b0}}
 </style>
-<p><a href="/?ngay={day}">Hôm nay</a> · <a href="/phieu?ngay={day}">Phiếu</a> · <a href="/sessions?ngay={day}">Phiên</a>
- · <small>nội bộ · làm mới mỗi 5 giây · không ghi D1 · {db}<br>{note}</small></p>
+<p><b>Nội bộ {version}</b> · <a href="/?ngay={day}">Hôm nay</a> · <a href="/phieu?ngay={day}">Phiếu</a> · <a href="/sessions?ngay={day}">Phiên</a>
+ · <small>làm mới mỗi 5 giây · không ghi D1 · {db}<br>{note}</small></p>
 {body}
 """
 
 
 def shell(title, day, db, body, note=""):
     shown = db if db else "chưa thấy cancomp.db"
-    return PAGE.format(title=esc(title), day=esc(day), db=esc(shown), note=esc(note), body=body).encode("utf-8")
+    return PAGE.format(title=esc(title), day=esc(day), version=esc(VERSION), db=esc(shown), note=esc(note), body=body).encode("utf-8")
 
 
 def day_nav(day, path):
@@ -204,8 +208,14 @@ def render_home(day, rows, sessions, db, note=""):
     def tons(lst):
         return f"{sum(float(s['net_kg'] or 0) for s in lst) / 1000:.1f}".replace(".", ",")
 
+    closed = [s for s in today if s["status"] == "closed"]
+    plates = {str(r.get("plate") or "").strip().upper() for r in today_rows if str(r.get("plate") or "").strip()}
     cards = (
         '<div class="cards">'
+        f'<div class="card">Phiếu<b>{len(today_rows)}</b></div>'
+        f'<div class="card">Xe<b>{len(plates)}</b></div>'
+        f'<div class="card">Phiên đóng<b>{len(closed)}</b></div>'
+        f'<div class="card">Phiên mở<b>{len(opens)}</b></div>'
         f'<div class="card">Xe nhập mì<b>{len(mi)}</b></div>'
         f'<div class="card">Xe xuất bột<b>{len(bot)}</b></div>'
         f'<div class="card">Tấn mì<b>{tons(mi)}</b></div>'
@@ -218,7 +228,7 @@ def render_home(day, rows, sessions, db, note=""):
         for s in opens
     )
     body = (
-        f"<h1>Cân xe {esc(day)}</h1>{cards}<p>{len(today_rows)} phiếu trong ngày · {len(opens)} phiên đang mở.</p>"
+        f"<h1>Cân xe {esc(day)} · nội bộ {esc(VERSION)}</h1>{cards}<p>{len(today_rows)} phiếu trong ngày · {len(closed)} phiên đã đóng · {len(opens)} phiên đang mở.</p>"
         + day_nav(day, "/")
         + "<h2>Đang trong nhà máy</h2><table><tr><th>Biển</th><th>Loại</th><th>Kg vào</th><th>Ghi chú</th></tr>"
         + (body_rows or "<tr><td colspan=4>Không có xe đang mở.</td></tr>")
@@ -318,7 +328,7 @@ class Handler(BaseHTTPRequestHandler):
                 except sqlite3.Error:
                     n = -1
                 cx.close()
-            raw = ('{"ok":%s,"db":"%s","events":%d}' % ("true" if path else "false", esc(path).replace("\\", "/"), n)).encode()
+            raw = ('{"ok":%s,"version":"%s","db":"%s","events":%d}' % ("true" if path else "false", VERSION, esc(path).replace("\\", "/"), n)).encode()
             self.send_response(200)
             self.send_header("content-type", "application/json")
             self.send_header("cache-control", "no-store")
@@ -372,7 +382,7 @@ def re_day(day):
 
 def main():
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print("Trang noi bo http://127.0.0.1:%d/  (may khac trong mang: cong %d)" % (PORT, PORT), flush=True)
+    print("Noi bo %s  http://127.0.0.1:%d/" % (VERSION, PORT), flush=True)
     httpd.serve_forever()
 
 

@@ -66,6 +66,7 @@ threading.Thread(target=serve, daemon=True).start()
 time.sleep(0.4)
 html = urllib.request.urlopen("http://127.0.0.1:8781/?ngay=" + day, timeout=5).read().decode()
 assert "70C-077.40" in html
+assert "Nội bộ 0.4" in html
 assert "Xe nhập mì" in html
 phieu = urllib.request.urlopen("http://127.0.0.1:8781/phieu?ngay=" + day, timeout=5).read().decode()
 assert "OCR Result" in phieu
